@@ -1057,7 +1057,7 @@ def test_manager_single_wont_add_existing_group(fake_process: process.Process, p
 
 def test_manager_add_wont_cover_single(fake_process: process.Process, p_manager: manager.ProcessManager):
     p_manager.single(fake_process, group="test_single")
-    p_manager.group("test_single").clear()
+    p_manager.group("test_single").unsafe_clear()
     assert len(p_manager.group("test_single")) == 0
 
     # even after a single group is cleared, disallow adds
@@ -1170,7 +1170,7 @@ def test_process_monitor_group_loop(mock_streamlit, fake_process_seq: list[proce
     selfref, output_list = next(loop_iter)
     assert selfref is pmg
     assert output_list == [[], []]
-    proc_start_time = spm._runtime_format(fake_process_seq[0].time_since_start)
+    proc_start_time = monitor._runtime_format(fake_process_seq[0].time_since_start)
     mock_streamlit.status().update.assert_has_calls(
         [
             mock.call(label=f"foo bar :gray[(running for {proc_start_time})]", state="running"),

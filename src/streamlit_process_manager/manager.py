@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import threading
 import typing as t
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
@@ -24,6 +25,7 @@ class ProcessManager:
         self._single_groups: set[str] = set()
         "Set of groups which were created as 'single'."
         self._cachefilehandle = self._setup_cachefile(cachefile)
+        self._lock = threading.RLock()
 
     def _setup_cachefile(self, cachepath) -> io.TextIOWrapper:
         """Create and open this manager's cachefile. Returns the Stream object for the file."""
@@ -54,7 +56,8 @@ class ProcessManager:
     @property
     def groups(self) -> list[str]:
         """Return a list of ProcessGroups in this ProcessManager."""
-        return list(self._groups.keys())
+        with self._lock:
+            return list(self._groups.keys())
 
     def group(self, key: str) -> ProcessGroup:
         """Return the ProcessGroup referenced by the specified name."""
@@ -62,11 +65,11 @@ class ProcessManager:
 
     @t.overload
     def add(self, process: Process, group: str, start: bool = False) -> ProcessProxy:  # noqa: D102
-        ...
+        ...  # pragma: no cover
 
     @t.overload
     def add(self, process: Iterable[Process], group: str, start: bool = False) -> list[ProcessProxy]:  # noqa: D102
-        ...
+        ...  # pragma: no cover
 
     def add(self, process: Process | Iterable[Process], group: str, start: bool = False):
         """Add one ore more Processes to the named group.
@@ -95,10 +98,10 @@ class ProcessManager:
             _procs = process
         _proxies: list[ProcessProxy] = []
         for proc in _procs:
-            self._groups[group].add(process=proc)
+            _proxy = self._groups[group].add(process=proc)
+            _proxies.append(_proxy)
             if start and proc.can_be_started:
                 proc.start()
-            _proxies.append(ProcessProxy(proc, pgroup=self._groups[group]))
         self._write_to_disk()
         if len(_proxies) == 1:
             return _proxies[0]
@@ -129,18 +132,20 @@ class ProcessManager:
             _group: str = "single_group_for_session_" + script_ctx.session_id
         else:
             _group = group
-        pg: ProcessGroup = self.group(_group)
-        group_len = len(pg)
 
-        if group_len > 1:
-            raise ValueError(
-                f"Cannot create/get single process for group {_group} as the group already exists "
-                "and has more than one process in it."
-            )
-        if group_len == 0:
-            _proc: ProcessProxy = t.cast(ProcessProxy, self._add(process=process, group=_group, start=False))
-        else:
-            _proc = pg[0]
+        pg: ProcessGroup = self._groups[_group]
+        with self._lock:
+            group_len = len(pg)
+            if group_len > 1:
+                raise ValueError(
+                    f"Cannot create/get single process for group {_group} as the group already exists "
+                    "and has more than one process in it."
+                )
+            if group_len == 0:
+                _proc: ProcessProxy = t.cast(ProcessProxy, self._add(process=process, group=_group, start=False))
+            else:
+                _proc = pg[0]
+            self._single_groups.add(_group)  # set this group as a "single" group (disallows future .add calls)
 
         if start and not _proc.running:
             _proc.start()
@@ -153,24 +158,27 @@ class ProcessManager:
         Returns:
             dict: representation of all groups and their Processes.
         """
-        if groups is None:
-            groups_to_write = self._groups
-        else:
-            groups_to_write = {group: self.group(group) for group in groups if group in self._groups}
+        with self._lock:
+            if groups is None:
+                groups_to_write = self._groups
+            else:
+                groups_to_write = {group: self._groups[group] for group in groups if group in self._groups}
 
-        return {group_name: pg.to_dicts() for group_name, pg in groups_to_write.items()}
+            return {group_name: pg.to_dicts() for group_name, pg in groups_to_write.items()}
 
     def _write_to_disk(self) -> None:
         """Write the ProcessManager's current state to the cachefile."""
-        self._cachefilehandle.truncate(0)
-        self._cachefilehandle.seek(0)
-        yaml.safe_dump(self.to_dict(), self._cachefilehandle)
+        with self._lock:
+            self._cachefilehandle.truncate(0)
+            self._cachefilehandle.seek(0)
+            yaml.safe_dump(self.to_dict(), self._cachefilehandle)
 
     def _read_from_disk(self) -> None:
         """Read the ProcessManager's state from disk (not currently used)."""
-        self._cachefilehandle.seek(0)
-        data: dict[str, list[Process.SavedProcessDict]] = yaml.safe_load(self._cachefilehandle)
-        if not isinstance(data, dict):
-            raise ValueError(f"Bad cache data in {self._cachefilehandle}")
-        for group_name, pg_data in data.items():
-            self._groups[group_name] = ProcessGroup([Process.from_dict(process_data) for process_data in pg_data])
+        with self._lock:
+            self._cachefilehandle.seek(0)
+            data: dict[str, list[Process.SavedProcessDict]] = yaml.safe_load(self._cachefilehandle)
+            if not isinstance(data, dict):
+                raise ValueError(f"Bad cache data in {self._cachefilehandle}")
+            for group_name, pg_data in data.items():
+                self._groups[group_name] = ProcessGroup([Process.from_dict(process_data) for process_data in pg_data])

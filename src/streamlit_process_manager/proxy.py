@@ -36,7 +36,7 @@ class ProcessProxy:
         """Raise an exception if the process no longer exists."""
         if (deref := self._proc_weak()) is None:
             raise ValueError(
-                f"The Process {when} no longer exists. It may have been removed in another session"
+                f"The Process {when} no longer exists. It may have been removed in another session "
                 "or the server may have been restarted."
             )
         return deref
@@ -52,19 +52,19 @@ class ProcessProxy:
             )
         return deref
 
-    @staticmethod
-    def _proxied_property(prop_name: str) -> t.Callable[[t.Callable[[t.Any, Process], T]], T]:
-        """Do Voodo property magic so that we deref he process before we access a property on it."""
+    # @staticmethod
+    # def _proxied_property(prop_name: str) -> t.Callable[[t.Callable[[t.Any, Process], T]], T]:
+    #     """Do Voodo property magic so that we deref he process before we access a property on it."""
 
-        def _decorator(func: t.Callable[[t.Any, Process], T]) -> T:
+    #     def _decorator(func: t.Callable[[t.Any, Process], T]) -> T:
 
-            @functools.wraps(func)
-            def _proxprop(self: ProcessProxy) -> T:
-                return func(self, self._deref_proc(when=f"you tried to get the {prop_name} of"))
+    #         @stu.functools.wraps(func)
+    #         def _proxprop(self: ProcessProxy) -> T:
+    #             return func(self, self._deref_proc(when=f"you tried to get the {prop_name} of"))
 
-            return t.cast("T", property(_proxprop))
+    #         return t.cast("T", property(_proxprop))
 
-        return _decorator
+    #     return _decorator
 
     def start(self) -> t.Self:
         """Start this process.
@@ -90,14 +90,10 @@ class ProcessProxy:
         """
         # TODO: should this also discard errors from dereferencing?
         proc = self._deref_proc(when="you are trying to start")
-        if (pgroup := self._deref_pgroup(when="you are trying to start")) is None or proc in pgroup._procs:
-            proc.start_safe()
-            return self
+        if proc.can_be_started:
+            return self.start()
         else:
-            raise _core.UnsafeOperationError(
-                "The Process is no longer part of its original ProcessGroup and cannot be started. It may have been "
-                "moved or removed in another session."
-            )
+            return self
 
     def terminate(self, wait_for_death: bool = False):
         """Call to force-kill this process.
@@ -141,12 +137,12 @@ class ProcessProxy:
         If the process is already removed from it's group, or this is a proxy which does not reference a group,
         then this function does nothing.
         """
-        if (pgroup := self._deref_pgroup(when="you are trying to remove")) is None:
-            return None  # do nothing if this process is not part of a group
         try:
+            if (pgroup := self._deref_pgroup(when="you are trying to remove")) is None:
+                return None  # do nothing if this process is not part of a group
             return pgroup.remove(self._deref_proc(when="you are trying to remove"))
         except ValueError:
-            return None  # do nothing if the process is not in the group t.Anymore
+            return None  # do nothing if the process is not in the group anymore or the group is gone
 
     def peek_output(self, nlines: int | None = None) -> list[str]:
         """Get up to the last nlines of output from the process, as a list of strings.
@@ -188,90 +184,39 @@ class ProcessProxy:
         if (_proc := self._proc_weak()) is not None:
             _proc.close_output()
 
-    # pylint doesn't like our magical property decorator so pylint: disable=property-with-parameters
-
-    @_proxied_property("start time")
-    def _start_time(self, proc: Process) -> float | None:  # noqa: D401
-        """The start time of this Process, or None if it is not started."""
-        return proc._start_time
-
-    @_proxied_property("command")
-    def cmd(self, proc: Process) -> list[str]:  # noqa: D401
-        """A copy of the command and args used for this Process."""
-        return proc.cmd
-
-    @_proxied_property("environment")
-    def env(self, proc: Process) -> Mapping[str, str] | None:  # noqa: D401
-        """A copy of the environment variables used for this Process."""
-        return proc.env
-
-    @_proxied_property("pid")
-    def pid(self, proc: Process) -> int | None:  # noqa: D401
-        """The Process ID of this Process (if it has started) otherwise None."""
-        return proc.pid
-
-    @_proxied_property("returncode")
-    def returncode(self, proc: Process) -> int | None:  # noqa: D401
-        """The returncode from this process.
-
-        Returns:
-            int | None: The returncode, or None if the process has not yet finished.
-        """
-        return proc.returncode
-
-    @_proxied_property("state")
-    def state(self, proc: Process) -> str | None:  # noqa: D401
-        """The state of this Process (if it has started) otherwise None."""
-        return proc.state
-
-    @_proxied_property("started")
-    def started(self, proc: Process) -> bool:  # noqa: D401
-        """Whether or not this Process has been started."""
-        return proc.started
-
-    @_proxied_property("finished")
-    def finished(self, proc: Process) -> bool:  # noqa: D401
-        """Whether or not this Process has finished."""
-        return proc.finished
-
-    @_proxied_property("running")
-    def running(self, proc: Process) -> bool:  # noqa: D401
-        """Whether or not this Process is currently running."""
-        return proc.running
-
-    @_proxied_property("time since start")
-    def time_since_start(self, proc: Process) -> float | None:  # noqa: D401
-        """The number of seconds since this Process started running, or None if it hasn't been started."""
-        return proc.time_since_start
-
-    @_proxied_property("ability to be started")
-    def can_be_started(self, proc: Process) -> bool:  # noqa: D401
-        """Whether or not this Process can be started."""
-        return proc.can_be_started
-
-    @_proxied_property("ability to be interrupted")
-    def can_be_interrupted(self, proc: Process) -> bool:  # noqa: D401
-        """Whether or not this Process can be interrupted."""
-        return proc.can_be_interrupted
-
-    @_proxied_property("output_file")
-    def output_file(self, proc: Process) -> Path | None:  # noqa: D401
-        """The output file chosen for this process."""
-        return proc.output_file
-
-    @_proxied_property("output_encoding")
-    def output_encoding(self, proc: Process) -> str:  # noqa: D401
-        """The output encoding chosen for this process."""
-        return proc.output_encoding
-
-    @_proxied_property("label")
-    def label(self, proc: Process) -> str:  # noqa: D401
-        """The label assigned to this Process."""
-        return proc.label
-
+    @property
     def is_broken(self):
         """Return true if the Process this proxy points to no longer exists."""
         return self._proc_weak() is None
+
+    # Typing for standard attributes that can be accessed via __getattr__
+    _start_time: float | None
+    cmd: list[str]
+    env: dict[str, str]
+    pid: int | None
+    returncode: int | None
+    state: str | None
+    started: bool
+    finished: bool
+    running: bool
+    time_since_start: float | None
+    can_be_started: bool
+    can_be_interrupted: bool
+    output_file: Path | None
+    output_encoding: str
+    label: str
+
+    def __getattr__(self, name: str):
+        """Access an attribute on the proxied Process that isn't otherwise defined."""
+        return self._deref_proc(when=f"trying to access the '{name}' attribute").__getattribute__(name)
+
+    def __setattr__(self, name: str, value):
+        """Set attributes on the proxy object generally fails."""
+        if name not in ("_proc_weak", "_pgroup_weak", "supports_remove"):
+            raise AttributeError("Cannot set attributes of a process via a Proxy object")
+        if name == "supports_remove" and hasattr(self, "supports_remove"):  # supports_remove can only be set once
+            raise AttributeError("supports_remove is read-only")
+        object.__setattr__(self, name, value)
 
     def __eq__(self, other: object) -> bool:
         """Check if this Process is equal to another."""

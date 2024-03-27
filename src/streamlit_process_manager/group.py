@@ -32,10 +32,14 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
 
         Parameters:
             process (Process): the Process to add. If it already exists in this group, a ValueError is raised.
+
+        Returns:
+            ProcessProxy: a proxy for the Process just added.
         """
         if process in self._procs:
             raise ValueError("Process already exists in ProcessGroup, cannot add twice.")
         self._procs.append(process)
+        return proxy.ProcessProxy(process, pgroup=self)
 
     def start_all(self):
         """Start all processes in this group that can be started."""
@@ -99,11 +103,14 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
             # If we did encounter at least one error, though, raise it here.
             raise last_err
 
-    def clear(self):
+    def unsafe_clear(self):
         """Clear all Processes from this group.
 
         This does not return t.Any of the Processes so if you want to retain references to them, use
-        `saved_procs = group.procs` first.
+        `saved_procs = group.procs` first. This is also not safe to call in general, as it does not check
+        whether any of the processes in the group are running before clearing them. To remove all processes safely,
+        iterate over the processes in the group and call `.remove()` on them after determining whether you want to
+        remove them based on their state.
         """
         with self._lock:
             self._procs.clear()
@@ -143,7 +150,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
         with self._lock:
             return [proc.returncode for proc in self._procs]
 
-    def by_label(self, label: str, match_whole: bool = True) -> list[proxy.ProcessProxy]:
+    def by_label(self, label: str, match_whole: bool = True) -> list[ProcessProxy]:
         """Return a list of proxies for the Processes from this group with a label that matches the specified string.
 
         Parameters:
@@ -193,8 +200,4 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
     def __contains__(self, proc: object) -> bool:
         """Return true if this object contains the specified Process or ProcessProxy."""
         with self._lock:
-            if proc in self._procs:
-                return True
-            if hasattr(proc, "_proc_weak") and t.cast(proxy.ProcessProxy, proc)._proc_weak() in self._procs:
-                return True
-            return False
+            return proc in self._procs

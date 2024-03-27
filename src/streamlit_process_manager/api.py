@@ -29,6 +29,10 @@ def get_manager(cachefile: str | Path | None = None) -> ProcessManager:
 
 def get_session_manager(cachefile: str | Path | None = None) -> ProcessManager:
     """Get a new process manager object, or one that already existed stored in streamlit.session_state."""
+    if cachefile is None:
+        cachefile = _core.DEFAULT_PROCESS_MANAGER_CACHE_PATH
+        if not _core.DEFAULT_PROCESS_MANAGER_CACHE_PATH.parent.exists():
+            os.makedirs(_core.DEFAULT_PROCESS_MANAGER_CACHE_PATH.parent, exist_ok=True)
     if _core.PROCESS_MANAGER_SESSION_STATE_KEY not in st.session_state:
         session_id = ctx.session_id if (ctx := get_script_run_ctx()) is not None else "local"
         session_postfix = f".session-{session_id}"
@@ -47,7 +51,7 @@ def st_process_monitor(
     showlinenumbers: bool = False,
     stripempty: bool = True,
 ) -> ProcessMonitor:  # noqa: D103
-    ...
+    ...  # pragma: no cover
 
 
 @t.overload
@@ -61,7 +65,7 @@ def st_process_monitor(
     showlinenumbers: bool = False,
     stripempty: bool = True,
 ) -> ProcessMonitorGroup:  # noqa: D103
-    ...
+    ...  # pragma: no cover
 
 
 def st_process_monitor(

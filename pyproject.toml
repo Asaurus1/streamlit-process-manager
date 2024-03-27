@@ -44,3 +44,4 @@ mypy = "mypy --install-types src/streamlit_process_manager"
 test = "pytest"
 pylint = "pylint src/streamlit_process_manager"
 lint = {composite = ["pylint", "mypy"]}
+example = "streamlit run examples/example.py"

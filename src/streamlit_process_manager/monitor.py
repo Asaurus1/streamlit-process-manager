@@ -263,11 +263,11 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
 
     @t.overload
     def __getitem__(self, index: int) -> ProcessMonitor:  # noqa: D105
-        ...
+        ...  # pragma: no cover
 
     @t.overload
     def __getitem__(self, _slice: slice) -> list[ProcessMonitor]:  # noqa: D105
-        ...
+        ...  # pragma: no cover
 
     def __getitem__(self, index):
         """Get ProcessMonitor(s) from the specified index or slice."""
