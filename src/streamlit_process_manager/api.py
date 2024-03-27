@@ -18,7 +18,7 @@ from streamlit_process_manager import _core
 stu = None  # Temp
 
 @st.cache_resource
-def get_manager(cachefile: str | Path | None = None) -> ProcessManager:
+def get_manager(cachefile: "str | Path | None" = None) -> ProcessManager:
     """Get a new process manager object, or one that already existed stored in streamlit global state."""
     if cachefile is None:
         cachefile = _core.DEFAULT_PROCESS_MANAGER_CACHE_PATH
@@ -27,7 +27,7 @@ def get_manager(cachefile: str | Path | None = None) -> ProcessManager:
     return ProcessManager(cachefile)
 
 
-def get_session_manager(cachefile: str | Path | None = None) -> ProcessManager:
+def get_session_manager(cachefile: "str | Path | None" = None) -> ProcessManager:
     """Get a new process manager object, or one that already existed stored in streamlit.session_state."""
     if cachefile is None:
         cachefile = _core.DEFAULT_PROCESS_MANAGER_CACHE_PATH

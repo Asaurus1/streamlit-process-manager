@@ -29,12 +29,12 @@ class Process:
     def __init__(
         self,
         cmd: Iterable[str],
-        output_file: Path | str | None,
+        output_file: "Path | str | None",
         *,
         output_encoding: str = "utf-8",
         capture: t.Literal["none", "stderr", "stdout", "all"] = "all",
-        env: Mapping[str, str] | None = None,
-        label: str | None = None,
+        env: "Mapping[str, str] | None" = None,
+        label: "str | None" = None,
         cache_output_capture: bool = True,
     ):
         """Create a Process object (does not start the process).
@@ -58,17 +58,17 @@ class Process:
         """
         # Private Members. These should be initialized first because they are referenced by public members and by the
         # __del__ function, and if there's a problem later we still want to be able to deconstruct the object.
-        self._proc: psutil.Process | subprocess.Popen | None = None
+        self._proc: "psutil.Process | subprocess.Popen | None" = None
         "The internal process handle."
-        self._output_filehandle: io.TextIOWrapper | None = None
+        self._output_filehandle: "io.TextIOWrapper | None" = None
         "An optional read-only filehandle to the process's output_file."
         self._output_buffer: list[str] = []
         "Stores lines read from the output file."
-        self._env: dict[str, str] | None
+        self._env: "dict[str, str] | None"
         "Internal env store."
         self._cmd: list[str]
         "Internal cmd store."
-        self._start_time: float | None = None
+        self._start_time: "float | None" = None
         "Value of time.time() when the process was started."
         self._can_be_interrupted: bool = True
         """Whether or not the process can be interrupted rather than terminated.
@@ -82,7 +82,7 @@ class Process:
         self.env = env
 
         # Public members
-        self.output_file: Path | None = Path(output_file) if output_file is not None else None
+        self.output_file: "Path | None" = Path(output_file) if output_file is not None else None
         "A path to a file where the process output should be stored. If no output is expected/desired, may be None."
         self.output_encoding: str = output_encoding
         "Default encoding for the output file. Disregarded if output_file is None."
@@ -204,15 +204,15 @@ class Process:
     class SavedProcessDict(t.TypedDict):
         """Represents a Process that has been saved to disk."""
 
-        pid: int | None
+        pid: "int | None"
         cmd: list[str]
         label: str
-        state: str | None
-        env: Mapping[str, str] | None
-        output_file: str | None
+        state: "str | None"
+        env: "Mapping[str, str] | None"
+        output_file: "str | None"
         output_encoding: str
-        start_time: float | None
-        returncode: int | None
+        start_time: "float | None"
+        returncode: "int | None"
 
     def to_dict(self) -> SavedProcessDict:
         """Convert this Process object to a SavedProcessDict representation."""
@@ -229,7 +229,7 @@ class Process:
         )
 
     @classmethod
-    def from_dict(cls, data: SavedProcessDict) -> t.Self | FinalizedProcess:
+    def from_dict(cls, data: SavedProcessDict) -> "t.Self | FinalizedProcess":
         """Create a new process from a SavedProcessDict.
 
         Parameters:
@@ -241,8 +241,8 @@ class Process:
             SavedProcessDict is no longer running or cannot be found, a FinalizedProcess will be returned
             which represents the last-known state of the Process.
         """
-        maybe_new_proc: t.Self | FinalizedProcess | None
-        new_proc: t.Self | FinalizedProcess
+        maybe_new_proc: "t.Self | FinalizedProcess | None"
+        new_proc: "t.Self | FinalizedProcess"
 
         if data["pid"] is not None:
             finalize_because: str = ""
@@ -294,10 +294,10 @@ class Process:
     @classmethod
     def from_existing(
         cls,
-        proc: psutil.Popen | subprocess.Popen,
-        output_file: str | Path | None,
+        proc: "psutil.Popen | subprocess.Popen",
+        output_file: "str | Path | None",
         output_encoding: str = "utf-8",
-        label: str | None = None,
+        label: "str | None" = None,
         cache_output_capture: bool = False,
     ) -> t.Self:
         """Create a new Process from an existing Popen object.
@@ -351,9 +351,9 @@ class Process:
     def from_pid(
         cls,
         pid: int,
-        output_file: str | Path | None,
+        output_file: "str | Path | None",
         output_encoding: str = "utf-8",
-        label: str | None = None,
+        label: "str | None" = None,
         cache_output_capture: bool = False,
     ) -> t.Self:
         """Create a new Process from the process with the specified PID.
@@ -399,12 +399,12 @@ class Process:
         return new
 
     @property
-    def pid(self) -> int | None:
+    def pid(self) -> "int | None":
         """The Process ID of this Process (if it has started) otherwise None."""
         return self._proc.pid if self._proc is not None else None
 
     @property
-    def returncode(self) -> int | None:
+    def returncode(self) -> "int | None":
         """The returncode from this process.
 
         Returns:
@@ -441,7 +441,7 @@ class Process:
         return self.started and not self.finished
 
     @property
-    def time_since_start(self) -> float | None:
+    def time_since_start(self) -> "float | None":
         """The number of seconds since this Process started running, or None if it hasn't been started."""
         if self._start_time is None:
             return None
@@ -473,12 +473,12 @@ class Process:
         self._cmd = list(cmd)
 
     @property
-    def env(self) -> Mapping[str, str] | None:
+    def env(self) -> "Mapping[str, str] | None":
         """A copy of the environment variables used for this Process."""
         return self._env.copy() if self._env is not None else None
 
     @env.setter
-    def env(self, user_env: Mapping[str, str] | None):
+    def env(self, user_env: "Mapping[str, str] | None"):
         """Set the environment variables used for this Process.
 
         If the Process has already been started, these cannot be changed. A value of None means that the current
@@ -488,7 +488,7 @@ class Process:
             raise _core.UnsafeOperationError("Cannot change environment variables for an already-started process.")
         self._env = _marshall_env_dict(user_env) if user_env is not None else None
 
-    def peek_output(self, nlines: int | None = None) -> list[str]:
+    def peek_output(self, nlines: "int | None" = None) -> list[str]:
         """Get up to the last nlines of output from the process, as a list of strings.
 
         Parameters:
@@ -512,7 +512,7 @@ class Process:
                 self.close_output()
         return buf
 
-    def _maybe_update_buffer(self, nlines: int | None, f: io.TextIOBase):
+    def _maybe_update_buffer(self, nlines: "int | None", f: io.TextIOBase):
         """Maybe update the internal linebuffer (if configured) and then return a copy of nlines or all of them)."""
         new = f.readlines()
 
@@ -524,7 +524,7 @@ class Process:
 
         return buf[-nlines:] if nlines is not None else buf.copy()
 
-    def monitor(self, nlines: int | None = 10) -> Iterator[list[str]]:
+    def monitor(self, nlines: "int | None" = 10) -> Iterator[list[str]]:
         """Get an iterator that yields the last nlines from the output_file, and completes when the Process is finished.
 
         Parameters:
@@ -542,7 +542,7 @@ class Process:
                 yield output
 
     @property
-    def state(self) -> t.Literal["complete", "error", "running"] | None:
+    def state(self) -> t.Literal["complete", "error", "running", None]:
         """Return a 'state' string or None.
 
         When the return value is a string, it is compatible with the streamlit Status widget's 'state' setting.
@@ -557,7 +557,7 @@ class Process:
         else:
             return None
 
-    def open_output(self, encoding=None) -> io.TextIOWrapper | None:
+    def open_output(self, encoding=None) -> "io.TextIOWrapper | None":
         """Open the output read filehandle of this Process object with the specified encoding.
 
         If the file cannot be found, return None (since the running Process may simply not have created it just yet).
@@ -630,7 +630,7 @@ class RerunableProcess(Process):
 class FinalizedProcess(Process):
     """Represents a process which has completed when we weren't watching it, or couldn't be found."""
 
-    def __init__(self, *args, finalized_because: str, returncode: int | None = None, **kwargs):
+    def __init__(self, *args, finalized_because: str, returncode: "int | None" = None, **kwargs):
         """Create a FinalizedProcess with a specific reason and returncode."""
         self._started: t.Literal[True] = False  # type: ignore  # FinalizedProcesses get marked as "started" after init
         try:
@@ -645,7 +645,7 @@ class FinalizedProcess(Process):
         raise ChildProcessError("t.Finalized Processes cannot be started")
 
     @property
-    def returncode(self) -> int | None:
+    def returncode(self) -> "int | None":
         """The returncode of the process."""
         return self._returncode
 
@@ -665,7 +665,7 @@ class FinalizedProcess(Process):
         return False
 
 
-def _default_label_if_unset(label: str | None, proc: Process) -> str:
+def _default_label_if_unset(label: "str | None", proc: Process) -> str:
     """Return a concatenated and truncated string from the process's "cmd" if 'label' is None.
 
     Otherwise return the label.

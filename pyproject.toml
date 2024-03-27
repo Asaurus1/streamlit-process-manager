@@ -40,7 +40,7 @@ lint = [
 ]
 
 [tool.pdm.scripts]
-mypy = "mypy --install-types src/streamlit_process_manager"
+mypy = "mypy --install-types --non-interactive src/streamlit_process_manager"
 test = "pytest"
 pylint = "pylint src/streamlit_process_manager"
 lint = {composite = ["pylint", "mypy"]}

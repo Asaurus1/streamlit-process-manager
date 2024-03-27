@@ -11,7 +11,7 @@ from streamlit_process_manager import proxy, _core
 class ProcessGroup(Sequence["proxy.ProcessProxy"]):
     """Container for multiple Process objects."""
 
-    def __init__(self, procs: Iterable[Process] | None = None):
+    def __init__(self, procs: "Iterable[Process] | None" = None):
         """Create a new group of Processes from the specified Iterable.
 
         Parameters:
@@ -145,12 +145,12 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
             return [proc.label for proc in self._procs]
 
     @property
-    def returncodes(self) -> list[int | None]:
+    def returncodes(self) -> list["int | None"]:
         """A list of Process returncodes from this ProcessGroup."""
         with self._lock:
             return [proc.returncode for proc in self._procs]
 
-    def by_label(self, label: str, match_whole: bool = True) -> list[ProcessProxy]:
+    def by_label(self, label: str, match_whole: bool = True) -> list["proxy.ProcessProxy"]:
         """Return a list of proxies for the Processes from this group with a label that matches the specified string.
 
         Parameters:

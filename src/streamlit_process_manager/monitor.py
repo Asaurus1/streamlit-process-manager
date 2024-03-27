@@ -19,7 +19,7 @@ from streamlit_process_manager._core import (
 )
 
 if t.TYPE_CHECKING:
-    ProcessOrProxy: t.TypeAlias = "Process" | "ProcessProxy"
+    ProcessOrProxy: "t.TypeAlias" = "Process | ProcessProxy"
 else:
     ProcessOrProxy = None
 
@@ -42,8 +42,8 @@ class ProcessMonitor:
     def __init__(
         self,
         process: ProcessOrProxy,
-        label: str | None = None,
-        expanded: bool | None = None,
+        label: "str | None" = None,
+        expanded: "bool | None" = None,
         lang: str = "log",
         show_controls: bool = True,
         show_runtime: bool = True,
@@ -68,7 +68,7 @@ class ProcessMonitor:
         self.contents: "st._DeltaGenerator" = self.status.container()  # A place for "loop" callers to put content
         self._draw_controls()
 
-    def update(self, nlines: int | None = 10) -> list[str]:
+    def update(self, nlines: "int | None" = 10) -> "list[str]":
         """Update the output display and status widget state for this ProcessMonitor.
 
         Parameters:
@@ -90,7 +90,7 @@ class ProcessMonitor:
         self.status.update(**self._eval_status_state())  # type: ignore
         return lines
 
-    def loop(self, nlines: int | None = 10, dt: float = 1.0) -> Iterable[tuple[t.Self, list[str]]]:
+    def loop(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Iterable[tuple[t.Self, list[str]]]":
         """Get a generator which yields (self, output as list[str]) from a running process.
 
         Parameters:
@@ -131,7 +131,7 @@ class ProcessMonitor:
 
         proc.close_output()  # close the reader after we're done
 
-    def loop_until_finished(self, nlines: int | None = 10, dt: float = 1.0) -> t.Self:
+    def loop_until_finished(self, nlines: "int | None" = 10, dt: float = 1.0) -> "t.Self":
         """Block execution and `loop` until the monitored Process is no longer running.
 
         Returns: this ProcessMonitor
@@ -146,7 +146,7 @@ class ProcessMonitor:
             with self._controls_empty.container():
                 _render_process_control_buttons(self.process)
 
-    def _eval_status_state(self, expanded: bool | None = None) -> dict[str, str | bool]:
+    def _eval_status_state(self, expanded: "bool | None" = None) -> "dict[str, str | bool]":
         """Determine the keyword args to pass to `st.status.update()` this loop, based on process status."""
         proc = self.process
         escaped_label = self.config.label.replace("]", "&#93;").replace("[", "&#91;")
@@ -167,7 +167,7 @@ class ProcessMonitor:
 
         return status_kwds
 
-    def _get_lines_from_process(self, nlines: int | None) -> list[str]:
+    def _get_lines_from_process(self, nlines: "int | None") -> "list[str]":
         lines = self.process.peek_output(nlines=nlines)
         if self.config.strip_empty_lines:
             return [aline for aline in lines if aline.strip()]
@@ -181,7 +181,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
         """Create a group of ProcessMonitors from an iterable."""
         self._monitors: list[ProcessMonitor] = list(monitors)
 
-    def update(self, nlines: int | None = 10) -> list[list[str]]:
+    def update(self, nlines: "int | None" = 10) -> "list[list[str]]":
         """Run a single `update` cycle for ever monitor in this group.
 
         Parameters:
@@ -192,7 +192,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
         """
         return [monitor.update(nlines=nlines) for monitor in self._monitors]
 
-    def loop(self, nlines: int | None = 10, dt: float = 1.0) -> Iterator[tuple[t.Self, list[list[str]]]]:
+    def loop(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Iterator[tuple[t.Self, list[list[str]]]]":
         """Get a generator which yields (self, output as list[list[str]]) from a running process.
 
         Parameters:
@@ -240,7 +240,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
         for monitor in self._monitors:
             monitor.process.close_output()  # close the readers after we're done
 
-    def loop_until_finished(self, nlines: int | None = 10, dt: float = 1.0) -> t.Self:
+    def loop_until_finished(self, nlines: "int | None" = 10, dt: float = 1.0) -> "t.Self":
         """Block execution and update all ProcessMonitors until their Processes are no longer running.
 
         Parameters:
@@ -266,7 +266,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
         ...  # pragma: no cover
 
     @t.overload
-    def __getitem__(self, _slice: slice) -> list[ProcessMonitor]:  # noqa: D105
+    def __getitem__(self, _slice: slice) -> "list[ProcessMonitor]":  # noqa: D105
         ...  # pragma: no cover
 
     def __getitem__(self, index):

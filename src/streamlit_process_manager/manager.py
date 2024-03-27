@@ -18,7 +18,7 @@ stu = None  # temp
 class ProcessManager:
     """Singleton manager class for processes."""
 
-    def __init__(self, cachefile: str | Path):
+    def __init__(self, cachefile: "str | Path"):
         """Create a ProcessManager which references the specified cachefile."""
         self._groups: dict[str, ProcessGroup] = defaultdict(ProcessGroup)
         "Process group storage, by group name."
@@ -71,7 +71,7 @@ class ProcessManager:
     def add(self, process: Iterable[Process], group: str, start: bool = False) -> list[ProcessProxy]:  # noqa: D102
         ...  # pragma: no cover
 
-    def add(self, process: Process | Iterable[Process], group: str, start: bool = False):
+    def add(self, process: "Process | Iterable[Process]", group: str, start: bool = False):
         """Add one ore more Processes to the named group.
 
         Parameters:
@@ -90,7 +90,7 @@ class ProcessManager:
             )
         return self._add(process, group, start=start)
 
-    def _add(self, process: Process | Iterable[Process], group: str, start: bool = False):
+    def _add(self, process: "Process | Iterable[Process]", group: str, start: bool = False):
         """Add one or more Processes to the named group without checking for 'single'ness."""
         if isinstance(process, Process) or not hasattr(process, "__iter__"):
             _procs: Iterable[Process] = [process]  # type: ignore[list-item]
@@ -108,7 +108,7 @@ class ProcessManager:
         else:
             return _proxies
 
-    def single(self, process: Process, group: str | None = None, start: bool = False) -> ProcessProxy:
+    def single(self, process: Process, group: "str | None" = None, start: bool = False) -> ProcessProxy:
         """Add a single process to a named group, or return the existing Process from that group.
 
         Parameters:
@@ -152,7 +152,7 @@ class ProcessManager:
 
         return _proc
 
-    def to_dict(self, groups: Sequence[str] | None = None) -> dict[str, list[Process.SavedProcessDict]]:
+    def to_dict(self, groups: "Sequence[str] | None" = None) -> dict[str, list[Process.SavedProcessDict]]:
         """Convert the current state of this ProcessMonitor and all contained Processes to a dict.
 
         Returns:

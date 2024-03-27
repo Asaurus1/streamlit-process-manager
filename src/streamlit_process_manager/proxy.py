@@ -25,10 +25,10 @@ class ProcessProxy:
     # we do this all over this proxy so pylint: disable=protected-access
     # and like Process it proxies, this needs pylint: disable=too-many-public-methods
 
-    def __init__(self, process: Process, pgroup: "group.ProcessGroup" | None = None):
+    def __init__(self, process: Process, pgroup: "group.ProcessGroup | None" = None):
         """Create a ProcessProxy which weakly references a Process and optionally, it's containing Group."""
         self._proc_weak: weakref.ref[Process] = weakref.ref(process)
-        self._pgroup_weak: weakref.ref["group.ProcessGroup"] | None = None if pgroup is None else weakref.ref(pgroup)
+        self._pgroup_weak: "weakref.ref[group.ProcessGroup] | None" = None if pgroup is None else weakref.ref(pgroup)
         self.supports_remove = self._pgroup_weak is not None
         """If True, this ProcessProxy supports calling `remove_from_pgroup`."""
 
@@ -41,7 +41,7 @@ class ProcessProxy:
             )
         return deref
 
-    def _deref_pgroup(self, when="you are trying to perform an action on") -> "group.ProcessGroup" | None:
+    def _deref_pgroup(self, when="you are trying to perform an action on") -> "group.ProcessGroup | None":
         """Raise an exception if the process group no longer exists."""
         if self._pgroup_weak is None:
             return None
@@ -66,7 +66,7 @@ class ProcessProxy:
 
     #     return _decorator
 
-    def start(self) -> t.Self:
+    def start(self) -> "t.Self":
         """Start this process.
 
         If the process has already been started, raise a ChildProcessError.
@@ -83,7 +83,7 @@ class ProcessProxy:
                 "moved or removed in another session."
             )
 
-    def start_safe(self) -> t.Self:
+    def start_safe(self) -> "t.Self":
         """Start this process, but if it's already started do nothing.
 
         Returns: self so it can be chained after the constructor.
@@ -144,7 +144,7 @@ class ProcessProxy:
         except ValueError:
             return None  # do nothing if the process is not in the group anymore or the group is gone
 
-    def peek_output(self, nlines: int | None = None) -> list[str]:
+    def peek_output(self, nlines: "int | None" = None) -> list[str]:
         """Get up to the last nlines of output from the process, as a list of strings.
 
         Parameters:
@@ -158,7 +158,7 @@ class ProcessProxy:
         """
         return self._deref_proc(when="you are trying to peek_output on").peek_output(nlines=nlines)
 
-    def monitor(self, nlines: int | None = 10) -> Iterator[list[str]]:
+    def monitor(self, nlines: "int | None" = 10) -> Iterator[list[str]]:
         """Get an Iterator that yields the last nlines from the output_file, and completes when the Process is finished.
 
         Parameters:
@@ -190,19 +190,19 @@ class ProcessProxy:
         return self._proc_weak() is None
 
     # Typing for standard attributes that can be accessed via __getattr__
-    _start_time: float | None
+    _start_time: "float | None"
     cmd: list[str]
     env: dict[str, str]
-    pid: int | None
-    returncode: int | None
-    state: str | None
+    pid: "int | None"
+    returncode: "int | None"
+    state: "str | None"
     started: bool
     finished: bool
     running: bool
-    time_since_start: float | None
+    time_since_start: "float | None"
     can_be_started: bool
     can_be_interrupted: bool
-    output_file: Path | None
+    output_file: "Path | None"
     output_encoding: str
     label: str
 
