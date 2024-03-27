@@ -11,9 +11,7 @@ from pathlib import Path
 import cachetools.func
 import psutil
 
-from streamlit_process_manager._core import (
-    UnsafeOperationError, UNSAFE_ALLOW_NONCHILDREN_TERMINATION, UNSAFE_ALLOW_NONCHILDREN_CREATION
-)
+from streamlit_process_manager import _core
 
 
 T = t.TypeVar("T")
@@ -172,7 +170,7 @@ class Process:
             if force:
                 return self.terminate(wait_for_death=wait_for_death)
             else:
-                raise UnsafeOperationError(
+                raise _core.UnsafeOperationError(
                     "This process cannot be safely interrupted on your platform. Use .terminate() instead or set "
                     "'force=True'"
                 )
@@ -196,12 +194,12 @@ class Process:
     def _raise_if_proc_not_child(self, action: str):
         """Raise an UnsafeOperationError if this Process is not a child of the current process."""
         if (
-            not UNSAFE_ALLOW_NONCHILDREN_TERMINATION
+            not _core.UNSAFE_ALLOW_NONCHILDREN_TERMINATION
             and (pid := self.pid) is not None
             and self.running
             and not _is_pid_child_of_current(pid)
         ):
-            raise UnsafeOperationError(f"Cannot {action} process {pid} which is not a child of the current process.")
+            raise _core.UnsafeOperationError(f"Cannot {action} process {pid} which is not a child of the current process.")
 
     class SavedProcessDict(t.TypedDict):
         """Represents a Process that has been saved to disk."""
@@ -374,8 +372,8 @@ class Process:
             Process: A new Process object representing the already-running process.
         """
         proc = psutil.Process(pid)
-        if not UNSAFE_ALLOW_NONCHILDREN_CREATION and not _is_pid_child_of_current(pid):
-            raise UnsafeOperationError(
+        if not _core.UNSAFEALLOW_NONCHILDREN_CREATION and not _is_pid_child_of_current(pid):
+            raise _core.UnsafeOperationError(
                 f"Cannot create process for pid {pid} which is not a child of the current process."
             )
 
@@ -471,7 +469,7 @@ class Process:
         If the Process has already been started, these cannot be changed.
         """
         if self.started:
-            raise UnsafeOperationError("Cannot change command line for an already-started process.")
+            raise _core.UnsafeOperationError("Cannot change command line for an already-started process.")
         self._cmd = list(cmd)
 
     @property
@@ -487,7 +485,7 @@ class Process:
         process's environment will be used instead.
         """
         if self.started:
-            raise UnsafeOperationError("Cannot change environment variables for an already-started process.")
+            raise _core.UnsafeOperationError("Cannot change environment variables for an already-started process.")
         self._env = _marshall_env_dict(user_env) if user_env is not None else None
 
     def peek_output(self, nlines: int | None = None) -> list[str]:

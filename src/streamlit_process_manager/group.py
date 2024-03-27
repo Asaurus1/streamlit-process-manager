@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import threading
@@ -6,11 +5,10 @@ import typing as t
 from collections.abc import Iterable, Iterator, Sequence
 
 from streamlit_process_manager.process import Process
-from streamlit_process_manager._core import UnsafeOperationError
-from streamlit_process_manager import proxy
+from streamlit_process_manager import proxy, _core
 
 
-class ProcessGroup(Sequence[proxy.ProcessProxy]):
+class ProcessGroup(Sequence["proxy.ProcessProxy"]):
     """Container for multiple Process objects."""
 
     def __init__(self, procs: Iterable[Process] | None = None):
@@ -117,7 +115,7 @@ class ProcessGroup(Sequence[proxy.ProcessProxy]):
         """
         with self._lock:
             if proc in self._procs and proc.running:
-                raise UnsafeOperationError(
+                raise _core.UnsafeOperationError(
                     "The process you are attempting to remove from this group is running "
                     "and cannot be removed safely. Please stop the process before removing."
                 )

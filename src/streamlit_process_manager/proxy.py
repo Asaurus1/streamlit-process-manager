@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import typing as t
+import functools
 import weakref
 from collections.abc import Iterator, Mapping
 from pathlib import Path
 
 from streamlit_process_manager.process import Process
-from streamlit_process_manager.group import ProcessGroup
-from streamlit_process_manager._core import UnsafeOperationError
+from streamlit_process_manager import group, _core
 
 
 T = t.TypeVar("T")
@@ -25,10 +25,10 @@ class ProcessProxy:
     # we do this all over this proxy so pylint: disable=protected-access
     # and like Process it proxies, this needs pylint: disable=too-many-public-methods
 
-    def __init__(self, process: Process, pgroup: ProcessGroup | None = None):
+    def __init__(self, process: Process, pgroup: "group.ProcessGroup" | None = None):
         """Create a ProcessProxy which weakly references a Process and optionally, it's containing Group."""
         self._proc_weak: weakref.ref[Process] = weakref.ref(process)
-        self._pgroup_weak: weakref.ref[ProcessGroup] | None = None if pgroup is None else weakref.ref(pgroup)
+        self._pgroup_weak: weakref.ref["group.ProcessGroup"] | None = None if pgroup is None else weakref.ref(pgroup)
         self.supports_remove = self._pgroup_weak is not None
         """If True, this ProcessProxy supports calling `remove_from_pgroup`."""
 
@@ -41,7 +41,7 @@ class ProcessProxy:
             )
         return deref
 
-    def _deref_pgroup(self, when="you are trying to perform an action on") -> ProcessGroup | None:
+    def _deref_pgroup(self, when="you are trying to perform an action on") -> "group.ProcessGroup" | None:
         """Raise an exception if the process group no longer exists."""
         if self._pgroup_weak is None:
             return None
@@ -58,7 +58,7 @@ class ProcessProxy:
 
         def _decorator(func: t.Callable[[t.Any, Process], T]) -> T:
 
-            @stu.functools.wraps(func)
+            @functools.wraps(func)
             def _proxprop(self: ProcessProxy) -> T:
                 return func(self, self._deref_proc(when=f"you tried to get the {prop_name} of"))
 
@@ -78,7 +78,7 @@ class ProcessProxy:
             proc.start()
             return self
         else:
-            raise UnsafeOperationError(
+            raise _core.UnsafeOperationError(
                 "The Process is no longer part of its original ProcessGroup and cannot be started. It may have been "
                 "moved or removed in another session."
             )
@@ -94,7 +94,7 @@ class ProcessProxy:
             proc.start_safe()
             return self
         else:
-            raise UnsafeOperationError(
+            raise _core.UnsafeOperationError(
                 "The Process is no longer part of its original ProcessGroup and cannot be started. It may have been "
                 "moved or removed in another session."
             )
@@ -109,7 +109,7 @@ class ProcessProxy:
         if (pgroup := self._deref_pgroup(when="you are trying to terminate")) is None or proc in pgroup._procs:
             return proc.terminate(wait_for_death=wait_for_death)
         else:
-            raise UnsafeOperationError(
+            raise _core.UnsafeOperationError(
                 "The Process is no longer part of its original ProcessGroup and cannot be terminated. It may have been "
                 "moved or removed in another session."
             )
@@ -130,7 +130,7 @@ class ProcessProxy:
         if (pgroup := self._deref_pgroup(when="you are trying to interrupt")) is None or proc in pgroup._procs:
             return proc.interrupt(wait_for_death=wait_for_death, force=force)
         else:
-            raise UnsafeOperationError(
+            raise _core.UnsafeOperationError(
                 "The Process is no longer part of its original ProcessGroup and cannot be interrupted. It may have been"
                 " moved or removed in another session."
             )

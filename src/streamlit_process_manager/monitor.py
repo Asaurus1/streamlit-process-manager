@@ -18,7 +18,11 @@ from streamlit_process_manager._core import (
     RESTART_BTN_LABEL,
 )
 
-ProcessOrProxy: t.TypeAlias = "Process" | "ProcessProxy"
+if t.TYPE_CHECKING:
+    ProcessOrProxy: t.TypeAlias = "Process" | "ProcessProxy"
+else:
+    ProcessOrProxy = None
+
 
 stu = None  # temp
 

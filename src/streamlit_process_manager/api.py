@@ -13,7 +13,7 @@ from streamlit_process_manager.process import Process
 from streamlit_process_manager.proxy import ProcessProxy
 from streamlit_process_manager.manager import ProcessManager
 from streamlit_process_manager.monitor import ProcessMonitor, ProcessMonitorGroup, ProcessOrProxy
-from streamlit_process_manager._core import DEFAULT_PROCESS_MANAGER_CACHE_PATH, PROCESS_MANAGER_SESSION_STATE_KEY
+from streamlit_process_manager import _core
 
 stu = None  # Temp
 
@@ -21,19 +21,19 @@ stu = None  # Temp
 def get_manager(cachefile: str | Path | None = None) -> ProcessManager:
     """Get a new process manager object, or one that already existed stored in streamlit global state."""
     if cachefile is None:
-        cachefile = DEFAULT_PROCESS_MANAGER_CACHE_PATH
-        if not DEFAULT_PROCESS_MANAGER_CACHE_PATH.parent.exists():
-            os.makedirs(DEFAULT_PROCESS_MANAGER_CACHE_PATH.parent, exist_ok=True)
+        cachefile = _core.DEFAULT_PROCESS_MANAGER_CACHE_PATH
+        if not _core.DEFAULT_PROCESS_MANAGER_CACHE_PATH.parent.exists():
+            os.makedirs(_core.DEFAULT_PROCESS_MANAGER_CACHE_PATH.parent, exist_ok=True)
     return ProcessManager(cachefile)
 
 
 def get_session_manager(cachefile: str | Path | None = None) -> ProcessManager:
     """Get a new process manager object, or one that already existed stored in streamlit.session_state."""
-    if PROCESS_MANAGER_SESSION_STATE_KEY not in st.session_state:
+    if _core.PROCESS_MANAGER_SESSION_STATE_KEY not in st.session_state:
         session_id = ctx.session_id if (ctx := get_script_run_ctx()) is not None else "local"
         session_postfix = f".session-{session_id}"
-        st.session_state[PROCESS_MANAGER_SESSION_STATE_KEY] = ProcessManager(str(cachefile) + session_postfix)
-    return st.session_state[PROCESS_MANAGER_SESSION_STATE_KEY]
+        st.session_state[_core.PROCESS_MANAGER_SESSION_STATE_KEY] = ProcessManager(str(cachefile) + session_postfix)
+    return st.session_state[_core.PROCESS_MANAGER_SESSION_STATE_KEY]
 
 
 @t.overload
