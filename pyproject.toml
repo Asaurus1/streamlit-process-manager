@@ -38,3 +38,9 @@ lint = [
     "mypy>=1.9.0",
     "pylint>=3.1.0",
 ]
+
+[tool.pdm.scripts]
+mypy = "mypy --install-types src/streamlit_process_manager"
+test = "pytest"
+pylint = "pylint src/streamlit_process_manager"
+lint = {composite = ["pylint", "mypy"]}

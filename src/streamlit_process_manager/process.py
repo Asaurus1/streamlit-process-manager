@@ -372,7 +372,7 @@ class Process:
             Process: A new Process object representing the already-running process.
         """
         proc = psutil.Process(pid)
-        if not _core.UNSAFEALLOW_NONCHILDREN_CREATION and not _is_pid_child_of_current(pid):
+        if not _core.UNSAFE_ALLOW_NONCHILDREN_CREATION and not _is_pid_child_of_current(pid):
             raise _core.UnsafeOperationError(
                 f"Cannot create process for pid {pid} which is not a child of the current process."
             )
@@ -688,6 +688,10 @@ def _marshall_env_dict(envdict: Mapping[str, T]) -> dict[str, T]:
     They get returned by psutil and os with uppercase keys always, so here we marshall the keys to uppercase as well.
     """
     if psutil.WINDOWS:
+        if envdict == {}:
+            # Patch GH-105436 Cpython issue by adding a fake var if the dict is empty.
+            # https://github.com/python/cpython/issues/105436
+            return {"FAKE_ENV_VARIABLE_FOR_CPYTHON_GH_105436": "1"}  # type: ignore
         return {k.upper(): v for k, v in envdict.items()}
     else:
         return dict(**envdict)

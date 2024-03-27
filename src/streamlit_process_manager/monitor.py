@@ -290,7 +290,7 @@ def _render_process_control_buttons(process: ProcessOrProxy):
     cols[0].button(
         start_label,
         disabled=not process.can_be_started,
-        on_click=_wrap_exception(process.start_safe),  # type: ignore  # streamlit doesn't like that we return a value
+        on_click=_wrap_exception()(process.start_safe),  # type: ignore  # streamlit doesn't like that we return a value
         key=f"startbutton: {process.pid or id(process)}",
     )
 
@@ -299,7 +299,7 @@ def _render_process_control_buttons(process: ProcessOrProxy):
     cols[1].button(
         interrupt_label,
         disabled=not process.running,
-        on_click=_wrap_exception(process.interrupt),
+        on_click=_wrap_exception()(process.interrupt),
         kwargs=dict(force=True),
         key=f"interruptbutton: {process.pid or id(process)}",
     )
@@ -310,7 +310,7 @@ def _render_process_control_buttons(process: ProcessOrProxy):
             REMOVE_BTN_LABEL,
             key=f"removebutton: {process.pid or id(process)}",
             help="Clear this process from the group",
-            on_click=_wrap_exception(t.cast(ProcessProxy, process).remove_from_pgroup),
+            on_click=_wrap_exception()(t.cast(ProcessProxy, process).remove_from_pgroup),
             disabled=process.running,
         )
 

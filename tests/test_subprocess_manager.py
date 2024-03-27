@@ -84,6 +84,7 @@ def real_process_short(TEST_OUTPUT_PATH):
 @pytest.fixture
 def real_process_3s(TEST_OUTPUT_PATH):
     proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "30"], TEST_OUTPUT_PATH, env={})
+    psutil.Popen([sys.executable, "tests/test_data/subprocess_loop.py", "30"])
     yield proc
     proc.close_output()
     proc.terminate(wait_for_death=True)
@@ -148,18 +149,18 @@ def pretend_linux():
 
 
 # Test Helpers -----------------------------------------------------
-def start_with_mock_sp(process: process.Process, *args, **kwargs):
+def start_with_mock_sp(proc: process.Process, *args, **kwargs):
     with mock.patch("psutil.Popen", wraps=mock_subprocess) as mock_sp:
-        process.start(*args, **kwargs)
+        proc.start(*args, **kwargs)
     return mock_sp
 
 
-def mark_as_finished(process, rc=0):
-    if isinstance(process, process.Process):
-        mark_as_finished(process._proc, rc=rc)
-        process._poll.cache_clear()
+def mark_as_finished(proc, rc=0):
+    if isinstance(proc, process.Process):
+        mark_as_finished(proc._proc, rc=rc)
+        proc._poll.cache_clear()
     else:
-        process.returncode = rc
+        proc.returncode = rc
 
 
 def mock_subprocess(cmd, *args, **kwargs):
@@ -693,8 +694,8 @@ def test_process_from_dict_started(real_process_infinite: process.Process):
 
 
 def test_process_proxy_eq(fake_process: process.Process):
-    proxy1 = process.ProcessProxy(fake_process)
-    proxy2 = process.ProcessProxy(fake_process)
+    proxy1 = proxy.ProcessProxy(fake_process)
+    proxy2 = proxy.ProcessProxy(fake_process)
     assert fake_process == proxy1
     assert fake_process == proxy2
     assert proxy2 == fake_process
@@ -767,7 +768,7 @@ def test_process_from_existing_psutilPopen():
         new_process = process.Process.from_existing(new_proc, output_file="42.txt")
 
         assert new_process.cmd == ["run", "my", "program"]
-        assert new_process.env == spm._marshall_env_dict({"thanks": "for", "the": "fish"})
+        assert new_process.env == process._marshall_env_dict({"thanks": "for", "the": "fish"})
         assert new_process.pid == 123456
         assert new_process._start_time > 0
     finally:
@@ -788,7 +789,7 @@ def test_process_from_existing_subprocessPopen():
             new_process = process.Process.from_existing(new_proc, output_file="42.txt")
 
         assert new_process.cmd == ["run", "my", "program"]
-        assert new_process.env == spm._marshall_env_dict({"thanks": "for", "the": "fish"})
+        assert new_process.env == process._marshall_env_dict({"thanks": "for", "the": "fish"})
         assert new_process.pid == 123456
         assert new_process._start_time > 0
     finally:
@@ -936,12 +937,12 @@ def test_process_group_by_label(fake_process: process.Process, fake_rerunable_pr
 
 # ProcessManager Tests -----------------------------------------------------
 def test_get_manager(TEST_PROCESS_MANAGER_PATH):
-    manager = api.get_manager(TEST_PROCESS_MANAGER_PATH)
-    assert manager._cachefilehandle.name == TEST_PROCESS_MANAGER_PATH
-    assert isinstance(manager, manager.ProcessManager)
+    _manager = api.get_manager(TEST_PROCESS_MANAGER_PATH)
+    assert _manager._cachefilehandle.name == TEST_PROCESS_MANAGER_PATH
+    assert isinstance(_manager, manager.ProcessManager)
 
-    manager = api.get_manager(Path(TEST_PROCESS_MANAGER_PATH))
-    assert manager._cachefilehandle.name == TEST_PROCESS_MANAGER_PATH
+    _manager = api.get_manager(Path(TEST_PROCESS_MANAGER_PATH))
+    assert _manager._cachefilehandle.name == TEST_PROCESS_MANAGER_PATH
 
 
 @pytest.mark.skip("this one is just really annoying to test right now")
@@ -1000,7 +1001,7 @@ def test_manager_add_process_one(fake_process: process.Process, p_manager: manag
     p_manager.add(fake_process, "test_group", start=False)
     assert fake_process.started is False
     assert p_manager.group("test_group")[0] == fake_process
-    assert all(isinstance(proxy, process.ProcessProxy) for proxy in p_manager.group("test_group"))
+    assert all(isinstance(_proxy, proxy.ProcessProxy) for _proxy in p_manager.group("test_group"))
     p_manager.add(fake_process, "test_group_2", start=True)
     assert fake_process.started is True
 
@@ -1012,7 +1013,7 @@ def test_manager_add_process_many(fake_process: process.Process, p_manager: mana
     assert test_process2.started is False
     assert p_manager.group("test_group")[0] == fake_process
     assert p_manager.group("test_group")[1] == test_process2
-    assert all(isinstance(proxy, process.ProcessProxy) for proxy in p_manager.group("test_group"))
+    assert all(isinstance(_proxy, proxy.ProcessProxy) for _proxy in p_manager.group("test_group"))
     p_manager.add([fake_process, test_process2], "test_group2", start=True)
     assert fake_process.started is True
     assert test_process2.started is True
@@ -1022,7 +1023,7 @@ def test_manager_single(fake_process: process.Process, p_manager: manager.Proces
     p_manager.single(fake_process, "single_group", start=False)
     assert fake_process.started is False
     assert p_manager.group("single_group")[0] == fake_process
-    assert isinstance(p_manager.group("single_group")[0], process.ProcessProxy)
+    assert isinstance(p_manager.group("single_group")[0], proxy.ProcessProxy)
     p_manager.single(fake_process, "single_group_2", start=True)
     assert fake_process.started is True
 
@@ -1031,7 +1032,7 @@ def test_manager_single_nogroup(fake_process: process.Process, p_manager: manage
     with pytest.raises(RuntimeError, match="Cannot create single process without streamlit session context"):
         p_manager.single(fake_process)
 
-    with mock.patch.object(spm.stu, "get_script_run_ctx") as mock_get_ctx:
+    with mock.patch("streamlit.runtime.scriptrunner.get_script_run_ctx") as mock_get_ctx:
         mock_get_ctx().session_id = "owhatagooseiam"
         p_manager.single(fake_process)
         assert "single_group_for_session_owhatagooseiam" in p_manager.groups
@@ -1040,7 +1041,7 @@ def test_manager_single_nogroup(fake_process: process.Process, p_manager: manage
 def test_manager_single_returns_existing(fake_process: process.Process, p_manager: manager.ProcessManager):
     p_manager.single(fake_process, "single_group")
     assert p_manager.single("fake_value", "single_group") == fake_process
-    assert isinstance(p_manager.single("fake_value", "single_group"), process.ProcessProxy)
+    assert isinstance(p_manager.single("fake_value", "single_group"), proxy.ProcessProxy)
 
 
 def test_manager_single_wont_add_existing_group(fake_process: process.Process, p_manager: manager.ProcessManager):
@@ -1056,7 +1057,7 @@ def test_manager_single_wont_add_existing_group(fake_process: process.Process, p
 
 def test_manager_add_wont_cover_single(fake_process: process.Process, p_manager: manager.ProcessManager):
     p_manager.single(fake_process, group="test_single")
-    p_manager.group("test_single").unsafe_clear()
+    p_manager.group("test_single").clear()
     assert len(p_manager.group("test_single")) == 0
 
     # even after a single group is cleared, disallow adds
@@ -1307,9 +1308,9 @@ def test_process_monitor_app_no_runtime(real_process_short: process.Process):
 
 def test_process_monitor_app_removal_button(real_process_short: process.Process):
     pg = group.ProcessGroup()
-    proxy = pg.add(real_process_short)
+    _proxy = pg.add(real_process_short)
     at = streamlit.testing.v1.AppTest.from_function(app_monitor_update_once)
-    at.session_state["proc"] = proxy.start()
+    at.session_state["proc"] = _proxy.start()
     at.session_state["procmonargs"] = dict(label="foo bar")
     at.run(timeout=6)
 
