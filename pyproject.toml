@@ -45,3 +45,4 @@ test = "pytest"
 pylint = "pylint src/streamlit_process_manager"
 lint = {composite = ["pylint", "mypy"]}
 example = "streamlit run examples/example.py"
+freeze = "pdm export --editable-self --no-hashes -o requirements.txt"
