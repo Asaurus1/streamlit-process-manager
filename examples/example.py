@@ -117,7 +117,7 @@ with st.echo():
     def _add_process():
         new_process_number = len(pm.group("multi")) + 1
         new_process = spm.RerunableProcess(
-            cmd=["python", "-c", endless_prog],
+            cmd=[sys.executable, "-c", endless_prog],
             output_file=Path(f".temp/test{new_process_number}.output"),
             # The above two arguments are the only ones you need. The next two
             # are extra and are here to make this example a bit nicer.
