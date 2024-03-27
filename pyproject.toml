@@ -1,0 +1,23 @@
+[project]
+name = "streamlit-process-manager"
+version = "0.1.0"
+description = "Manage the heck out of long-running processes in streamlit"
+authors = [
+    {name = "Alexander Martin", email = "fauxjunk-1@yahoo.com"},
+]
+dependencies = [
+    "psutil",
+    "streamlit>=1.30.0",
+    "pyyaml",
+]
+requires-python = "!=3.9.7,>=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pdm]
+distribution = true
