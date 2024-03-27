@@ -11,6 +11,7 @@ eggs/
 .eggs/
 *.egg-info/
 *.egg
+.pdm-python
 
 # Env
 .venv/
