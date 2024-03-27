@@ -13,6 +13,9 @@ import psutil
 
 from streamlit_process_manager import _core
 
+if t.TYPE_CHECKING:
+    from streamlit_process_manager.types import Self
+
 
 T = t.TypeVar("T")
 
@@ -62,11 +65,11 @@ class Process:
         "The internal process handle."
         self._output_filehandle: "io.TextIOWrapper | None" = None
         "An optional read-only filehandle to the process's output_file."
-        self._output_buffer: list[str] = []
+        self._output_buffer: t.List[str] = []
         "Stores lines read from the output file."
-        self._env: "dict[str, str] | None"
+        self._env: "t.Dict[str, str] | None"
         "Internal env store."
-        self._cmd: list[str]
+        self._cmd: t.List[str]
         "Internal cmd store."
         self._start_time: "float | None" = None
         "Value of time.time() when the process was started."
@@ -86,7 +89,7 @@ class Process:
         "A path to a file where the process output should be stored. If no output is expected/desired, may be None."
         self.output_encoding: str = output_encoding
         "Default encoding for the output file. Disregarded if output_file is None."
-        self._capture_settings: tuple[bool, bool] = (capture in ("all", "stdout"), capture in ("all", "stderr"))
+        self._capture_settings: t.Tuple[bool, bool] = (capture in ("all", "stdout"), capture in ("all", "stderr"))
         "Whether to capture STDOUT/STDERR from the process."
         if capture not in ("all", "stderr", "stdout", "none"):
             raise ValueError(f"Invalid capture setting '{capture}'. Expected 'all', 'stderr', 'stdout', or 'none'.")
@@ -101,7 +104,7 @@ class Process:
         self.label: str = _default_label_if_unset(label, self)
         "A label for the process."
 
-    def start(self) -> t.Self:
+    def start(self) -> "Self":
         """Start the process.
 
         If the process has already been started, raise a ChildProcessError.
@@ -118,7 +121,7 @@ class Process:
                 self._start_process(f)
         return self
 
-    def start_safe(self) -> t.Self:
+    def start_safe(self) -> "Self":
         """Start the process if it can be started, otherwise do nothing."""
         if self.can_be_started:
             return self.start()
@@ -205,7 +208,7 @@ class Process:
         """Represents a Process that has been saved to disk."""
 
         pid: "int | None"
-        cmd: list[str]
+        cmd: t.List[str]
         label: str
         state: "str | None"
         env: "Mapping[str, str] | None"
@@ -229,7 +232,7 @@ class Process:
         )
 
     @classmethod
-    def from_dict(cls, data: SavedProcessDict) -> "t.Self | FinalizedProcess":
+    def from_dict(cls, data: SavedProcessDict) -> "Self | FinalizedProcess":
         """Create a new process from a SavedProcessDict.
 
         Parameters:
@@ -241,8 +244,8 @@ class Process:
             SavedProcessDict is no longer running or cannot be found, a FinalizedProcess will be returned
             which represents the last-known state of the Process.
         """
-        maybe_new_proc: "t.Self | FinalizedProcess | None"
-        new_proc: "t.Self | FinalizedProcess"
+        maybe_new_proc: "Self | FinalizedProcess | None"
+        new_proc: "Self | FinalizedProcess"
 
         if data["pid"] is not None:
             finalize_because: str = ""
@@ -299,7 +302,7 @@ class Process:
         output_encoding: str = "utf-8",
         label: "str | None" = None,
         cache_output_capture: bool = False,
-    ) -> t.Self:
+    ) -> "Self":
         """Create a new Process from an existing Popen object.
 
         Currently, only Popen objects with commands specified as a sequence of strings are supported.
@@ -318,7 +321,7 @@ class Process:
                 you do not use the Popen object reference after it has been passed to this function.
         """
         if hasattr(proc, "environ"):
-            env: dict[str, str] = proc.environ()
+            env: t.Dict[str, str] = proc.environ()
         else:
             env = psutil.Process(proc.pid).environ()
 
@@ -355,7 +358,7 @@ class Process:
         output_encoding: str = "utf-8",
         label: "str | None" = None,
         cache_output_capture: bool = False,
-    ) -> t.Self:
+    ) -> "Self":
         """Create a new Process from the process with the specified PID.
 
         Parameters:
@@ -458,7 +461,7 @@ class Process:
         return self._can_be_interrupted
 
     @property
-    def cmd(self) -> list[str]:
+    def cmd(self) -> t.List[str]:
         """A copy of the command and args used for this Process."""
         return self._cmd.copy()
 
@@ -488,14 +491,14 @@ class Process:
             raise _core.UnsafeOperationError("Cannot change environment variables for an already-started process.")
         self._env = _marshall_env_dict(user_env) if user_env is not None else None
 
-    def peek_output(self, nlines: "int | None" = None) -> list[str]:
+    def peek_output(self, nlines: "int | None" = None) -> t.List[str]:
         """Get up to the last nlines of output from the process, as a list of strings.
 
         Parameters:
             nlines (optional, int): The maximum number of lines to return. If None, all lines are returned.
 
         Returns:
-            list[str]: The last nlines of output (or fewer) from the monitored output_file.
+            t.List[str]: The last nlines of output (or fewer) from the monitored output_file.
                 Strings are newline-terminated, and so may be joined with `"".join(proc.peek_output())` to recreate
                 the file contents. If the process is not running or the output file does not exist, an empty list is
                 returned.
@@ -524,14 +527,14 @@ class Process:
 
         return buf[-nlines:] if nlines is not None else buf.copy()
 
-    def monitor(self, nlines: "int | None" = 10) -> Iterator[list[str]]:
+    def monitor(self, nlines: "int | None" = 10) -> Iterator[t.List[str]]:
         """Get an iterator that yields the last nlines from the output_file, and completes when the Process is finished.
 
         Parameters:
             nlines (int): number of lines of output to show.
 
         Returns:
-            list[str]: A list of strings representing the last nlines of output from this Process.
+            t.List[str]: A list of strings representing the last nlines of output from this Process.
         """
         while self.started:
             output = self.peek_output(nlines)
@@ -682,7 +685,7 @@ def _is_pid_child_of_current(pid: int) -> bool:
     return pid in (descendant.pid for descendant in current_process.children(recursive=True))
 
 
-def _marshall_env_dict(envdict: Mapping[str, T]) -> dict[str, T]:
+def _marshall_env_dict(envdict: Mapping[str, T]) -> t.Dict[str, T]:
     """In windows, environment variables are case insensitive.
 
     They get returned by psutil and os with uppercase keys always, so here we marshall the keys to uppercase as well.

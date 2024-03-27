@@ -19,7 +19,9 @@ from streamlit_process_manager._core import (
 )
 
 if t.TYPE_CHECKING:
-    ProcessOrProxy: "t.TypeAlias" = "Process | ProcessProxy"
+    from streamlit_process_manager.types import Self, TypeAlias
+
+    ProcessOrProxy: "TypeAlias" = "Process | ProcessProxy"
 else:
     ProcessOrProxy = None
 
@@ -68,14 +70,14 @@ class ProcessMonitor:
         self.contents: "st._DeltaGenerator" = self.status.container()  # A place for "loop" callers to put content
         self._draw_controls()
 
-    def update(self, nlines: "int | None" = 10) -> "list[str]":
+    def update(self, nlines: "int | None" = 10) -> "t.List[str]":
         """Update the output display and status widget state for this ProcessMonitor.
 
         Parameters:
             nlines (int): number of lines of output to show.
 
         Returns:
-            list[str]: A list of strings representing nlines from each monitor updated this cycle
+            t.List[str]: A list of strings representing nlines from each monitor updated this cycle
         """
         lines = []
         if (
@@ -90,8 +92,8 @@ class ProcessMonitor:
         self.status.update(**self._eval_status_state())  # type: ignore
         return lines
 
-    def loop(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Iterable[tuple[t.Self, list[str]]]":
-        """Get a generator which yields (self, output as list[str]) from a running process.
+    def loop(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Iterable[t.Tuple[Self, t.List[str]]]":
+        """Get a generator which yields (self, output as t.List[str]) from a running process.
 
         Parameters:
             nlines (int): number of lines of output to show.
@@ -99,7 +101,7 @@ class ProcessMonitor:
 
         Yields:
             self: this ProcessMonitorGroup object
-            output (list[str]): A list of strings representing nlines from each monitor updated this cycle
+            output (t.List[str]): A list of strings representing nlines from each monitor updated this cycle
         """
         proc = self.process
         was_running = False
@@ -131,7 +133,7 @@ class ProcessMonitor:
 
         proc.close_output()  # close the reader after we're done
 
-    def loop_until_finished(self, nlines: "int | None" = 10, dt: float = 1.0) -> "t.Self":
+    def loop_until_finished(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Self":
         """Block execution and `loop` until the monitored Process is no longer running.
 
         Returns: this ProcessMonitor
@@ -146,11 +148,11 @@ class ProcessMonitor:
             with self._controls_empty.container():
                 _render_process_control_buttons(self.process)
 
-    def _eval_status_state(self, expanded: "bool | None" = None) -> "dict[str, str | bool]":
+    def _eval_status_state(self, expanded: "bool | None" = None) -> "t.Dict[str, str | bool]":
         """Determine the keyword args to pass to `st.status.update()` this loop, based on process status."""
         proc = self.process
         escaped_label = self.config.label.replace("]", "&#93;").replace("[", "&#91;")
-        status_kwds: dict[str, t.Any] = {"label": escaped_label}
+        status_kwds: t.Dict[str, t.Any] = {"label": escaped_label}
 
         if (process_state := proc.state) is not None:
             status_kwds["state"] = process_state
@@ -167,7 +169,7 @@ class ProcessMonitor:
 
         return status_kwds
 
-    def _get_lines_from_process(self, nlines: "int | None") -> "list[str]":
+    def _get_lines_from_process(self, nlines: "int | None") -> "t.List[str]":
         lines = self.process.peek_output(nlines=nlines)
         if self.config.strip_empty_lines:
             return [aline for aline in lines if aline.strip()]
@@ -179,21 +181,21 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
 
     def __init__(self, monitors: Iterable[ProcessMonitor]):
         """Create a group of ProcessMonitors from an iterable."""
-        self._monitors: list[ProcessMonitor] = list(monitors)
+        self._monitors: t.List[ProcessMonitor] = list(monitors)
 
-    def update(self, nlines: "int | None" = 10) -> "list[list[str]]":
+    def update(self, nlines: "int | None" = 10) -> "t.List[t.List[str]]":
         """Run a single `update` cycle for ever monitor in this group.
 
         Parameters:
             nlines (int): number of lines of output to show.
 
         Returns:
-            list[list[str]]: A list of list of strings representing nlines from each monitor updated this cycle
+            t.List[t.List[str]]: A list of list of strings representing nlines from each monitor updated this cycle
         """
         return [monitor.update(nlines=nlines) for monitor in self._monitors]
 
-    def loop(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Iterator[tuple[t.Self, list[list[str]]]]":
-        """Get a generator which yields (self, output as list[list[str]]) from a running process.
+    def loop(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Iterator[t.Tuple[Self, t.List[t.List[str]]]]":
+        """Get a generator which yields (self, output as t.List[t.List[str]]) from a running process.
 
         Parameters:
             nlines (int): number of lines of output to show.
@@ -201,7 +203,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
 
         Yields:
             self: this ProcessMonitorGroup object
-            output (list[list[str]]): A list of list of strings representing nlines from each monitor updated this cycle
+            output (t.List[t.List[str]]): A list of list of strings representing nlines from each monitor updated this cycle
         """
         last_running_states = running_states = [False] * len(self._monitors)
         while True:
@@ -240,7 +242,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
         for monitor in self._monitors:
             monitor.process.close_output()  # close the readers after we're done
 
-    def loop_until_finished(self, nlines: "int | None" = 10, dt: float = 1.0) -> "t.Self":
+    def loop_until_finished(self, nlines: "int | None" = 10, dt: float = 1.0) -> "Self":
         """Block execution and update all ProcessMonitors until their Processes are no longer running.
 
         Parameters:
@@ -266,7 +268,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
         ...  # pragma: no cover
 
     @t.overload
-    def __getitem__(self, _slice: slice) -> "list[ProcessMonitor]":  # noqa: D105
+    def __getitem__(self, _slice: slice) -> "t.List[ProcessMonitor]":  # noqa: D105
         ...  # pragma: no cover
 
     def __getitem__(self, index):

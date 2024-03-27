@@ -867,7 +867,7 @@ def test_process_group_remove(fake_process: process.Process):
     assert len(pg) == 0
 
 
-def test_process_group_pop_finished(fake_process_seq: list[process.Process]):
+def test_process_group_pop_finished(fake_process_seq: t.List[process.Process]):
     for test in fake_process_seq:
         start_with_mock_sp(test)
     pg = group.ProcessGroup(fake_process_seq)
@@ -878,7 +878,7 @@ def test_process_group_pop_finished(fake_process_seq: list[process.Process]):
     assert len(pg.procs) == 1
 
 
-def test_process_group_terminate_all(fake_process_seq: list[process.Process]):
+def test_process_group_terminate_all(fake_process_seq: t.List[process.Process]):
     for test in fake_process_seq:
         start_with_mock_sp(test)
     pg = group.ProcessGroup(fake_process_seq)
@@ -888,7 +888,7 @@ def test_process_group_terminate_all(fake_process_seq: list[process.Process]):
     assert pg.returncodes == [-1, -1]
 
 
-def test_process_group_interrupt_all(fake_process_seq: list[process.Process], pretend_linux):
+def test_process_group_interrupt_all(fake_process_seq: t.List[process.Process], pretend_linux):
     for test in fake_process_seq:
         start_with_mock_sp(test)
     pg = group.ProcessGroup(fake_process_seq)
@@ -898,7 +898,7 @@ def test_process_group_interrupt_all(fake_process_seq: list[process.Process], pr
     assert pg.returncodes == [-2, -2]
 
 
-def test_process_group_terminate_all_ingnores_exceptions(fake_process_seq: list[process.Process]):
+def test_process_group_terminate_all_ingnores_exceptions(fake_process_seq: t.List[process.Process]):
     for test in fake_process_seq:
         start_with_mock_sp(test)
     pg = group.ProcessGroup(fake_process_seq)
@@ -908,7 +908,7 @@ def test_process_group_terminate_all_ingnores_exceptions(fake_process_seq: list[
         pg.terminate_all()
 
 
-def test_process_group_interrupt_all_ingnores_exceptions(fake_process_seq: list[process.Process], pretend_linux):
+def test_process_group_interrupt_all_ingnores_exceptions(fake_process_seq: t.List[process.Process], pretend_linux):
     for test in fake_process_seq:
         start_with_mock_sp(test)
     pg = group.ProcessGroup(fake_process_seq)
@@ -1139,7 +1139,7 @@ def test_process_monitor_update(fake_process: process.Process):
     assert pm._get_lines_from_process(10) == []
 
 
-def test_process_monitor_group_update(fake_process_seq: list[process.Process]):
+def test_process_monitor_group_update(fake_process_seq: t.List[process.Process]):
     pmg = monitor.ProcessMonitorGroup(monitor.ProcessMonitor(proc) for proc in fake_process_seq)
 
     with mock.patch.object(monitor.ProcessMonitor, "update") as mock_update:
@@ -1147,7 +1147,7 @@ def test_process_monitor_group_update(fake_process_seq: list[process.Process]):
         assert mock_update.call_count == len(fake_process_seq)
 
 
-def test_process_monitor_group_dunders(fake_process_seq: list[process.Process]):
+def test_process_monitor_group_dunders(fake_process_seq: t.List[process.Process]):
     pmg = monitor.ProcessMonitorGroup(monitor.ProcessMonitor(proc) for proc in fake_process_seq)
     assert len(pmg) == len(fake_process_seq)
     assert [pm.process for pm in pmg] == fake_process_seq
@@ -1155,7 +1155,7 @@ def test_process_monitor_group_dunders(fake_process_seq: list[process.Process]):
 
 
 @mock.patch.object(monitor, "st")
-def test_process_monitor_group_loop(mock_streamlit, fake_process_seq: list[process.Process]):
+def test_process_monitor_group_loop(mock_streamlit, fake_process_seq: t.List[process.Process]):
     pmg = monitor.ProcessMonitorGroup(monitor.ProcessMonitor(proc) for proc in fake_process_seq)
     assert pmg.loop_until_finished() is pmg
     loop_iter = pmg.loop(dt=0)
@@ -1348,21 +1348,21 @@ def test_spm_single_expanded_defaults(fake_process: process.Process):
         assert mock_pm.call_args[1]["expanded"] is False
 
 
-def test_spm_bad_labels(fake_process: process.Process, fake_process_seq: list[process.Process]):
+def test_spm_bad_labels(fake_process: process.Process, fake_process_seq: t.List[process.Process]):
     with pytest.raises(TypeError, match="Provided label must be a single string when a single process is provided."):
         api.st_process_monitor(process=fake_process, label=["foo", "bar"])
     with pytest.raises(ValueError, match="The number of labels and processes provided must match."):
         api.st_process_monitor(process=fake_process_seq, label="foo")
 
 
-def test_spm_multi_process(fake_process_seq: list[process.Process]):
+def test_spm_multi_process(fake_process_seq: t.List[process.Process]):
     pmg = api.st_process_monitor(process=fake_process_seq, label=["one", "two"])
     assert isinstance(pmg, monitor.ProcessMonitorGroup)
     assert all(pm.process == tp for pm, tp in zip(pmg, fake_process_seq))
     assert [pm.config.label for pm in pmg] == ["one", "two"]
 
 
-def test_spm_multi_expanded_defaults(fake_process_seq: list[process.Process]):
+def test_spm_multi_expanded_defaults(fake_process_seq: t.List[process.Process]):
     with mock.patch.object(api, "ProcessMonitor") as mock_pm:
         api.st_process_monitor(process=fake_process_seq, expanded=True)
         assert mock_pm.call_args[1]["expanded"] is True
@@ -1377,7 +1377,7 @@ def test_spm_multi_expanded_defaults(fake_process_seq: list[process.Process]):
         assert mock_pm.call_args[1]["expanded"] is False
 
 
-def test_spm_multi_no_removal_on_non_mutable(fake_process_seq: list[process.Process]):
+def test_spm_multi_no_removal_on_non_mutable(fake_process_seq: t.List[process.Process]):
     fake_process_tup = tuple(fake_process_seq)
     pmg = api.st_process_monitor(process=fake_process_tup, label=["one", "two"])
     assert isinstance(pmg, monitor.ProcessMonitorGroup)

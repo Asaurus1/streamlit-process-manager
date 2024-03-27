@@ -1,6 +1,7 @@
 import typing as t
 from pathlib import Path
 
+
 class UnsafeOperationError(Exception):
     """Error type used when an unsafe process operation is attempted."""
 

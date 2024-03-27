@@ -21,7 +21,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
             procs_list = list(procs)
             if len(set(procs_list)) != len(procs_list):
                 raise ValueError("Not all input Processes are unique")
-            self._procs: list[Process] = procs_list
+            self._procs: t.List[Process] = procs_list
         else:
             self._procs = []
 
@@ -47,7 +47,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
             for proc in self._procs:
                 proc.start_safe()
 
-    def pop_finished(self) -> list[Process]:
+    def pop_finished(self) -> t.List[Process]:
         """Remove all finished processes from this group and return them as a list."""
         poplist = []
         newprocs = []
@@ -128,7 +128,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
                 )
             self._procs.remove(proc)
 
-    def to_dicts(self) -> list[Process.SavedProcessDict]:
+    def to_dicts(self) -> t.List[Process.SavedProcessDict]:
         """Get a snapshot of all Processes in this group as SavedProcessDicts."""
         with self._lock:
             return [proc.to_dict() for proc in self._procs]
@@ -139,18 +139,18 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
         return len(self._procs) == 0
 
     @property
-    def labels(self) -> list[str]:
+    def labels(self) -> t.List[str]:
         """A list of Process labels from this ProcessGroup."""
         with self._lock:
             return [proc.label for proc in self._procs]
 
     @property
-    def returncodes(self) -> list["int | None"]:
+    def returncodes(self) -> t.List["int | None"]:
         """A list of Process returncodes from this ProcessGroup."""
         with self._lock:
             return [proc.returncode for proc in self._procs]
 
-    def by_label(self, label: str, match_whole: bool = True) -> list["proxy.ProcessProxy"]:
+    def by_label(self, label: str, match_whole: bool = True) -> t.List["proxy.ProcessProxy"]:
         """Return a list of proxies for the Processes from this group with a label that matches the specified string.
 
         Parameters:
@@ -158,7 +158,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
             match_whole (bool): whether the Process label must exactly match the provided string, or only a part.
 
         Returns:
-            list[Process]: a list of matching processes.
+            t.List[Process]: a list of matching processes.
         """
         with self._lock:
             return [
@@ -168,7 +168,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
             ]
 
     @property
-    def procs(self) -> list[proxy.ProcessProxy]:
+    def procs(self) -> t.List[proxy.ProcessProxy]:
         """Return a list of proxies for the Processes in this group."""
         with self._lock:
             return [proxy.ProcessProxy(proc, pgroup=self) for proc in self._procs]
@@ -178,7 +178,7 @@ class ProcessGroup(Sequence["proxy.ProcessProxy"]):
         ...
 
     @t.overload
-    def __getitem__(self, _slice: slice) -> list[proxy.ProcessProxy]:  # noqa: D105
+    def __getitem__(self, _slice: slice) -> t.List[proxy.ProcessProxy]:  # noqa: D105
         ...
 
     def __getitem__(self, index):

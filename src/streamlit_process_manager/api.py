@@ -43,7 +43,7 @@ def get_session_manager(cachefile: "str | Path | None" = None) -> ProcessManager
 @t.overload
 def st_process_monitor(
     process: ProcessOrProxy,
-    label: str | None = None,
+    label: "str | None" = None,
     expanded: bool = True,
     lang: str = "log",
     showcontrols: bool = True,
@@ -57,7 +57,7 @@ def st_process_monitor(
 @t.overload
 def st_process_monitor(
     process: Sequence[ProcessOrProxy],
-    label: Sequence[str] | None = None,
+    label: "Sequence[str] | None" = None,
     expanded: bool = False,
     lang: str = "log",
     showcontrols: bool = True,

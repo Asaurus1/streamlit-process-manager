@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import typing as t
-import functools
 import weakref
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator
 from pathlib import Path
 
 from streamlit_process_manager.process import Process
 from streamlit_process_manager import group, _core
+
+if t.TYPE_CHECKING:
+    from streamlit_process_manager.types import Self
 
 
 T = t.TypeVar("T")
@@ -66,7 +68,7 @@ class ProcessProxy:
 
     #     return _decorator
 
-    def start(self) -> "t.Self":
+    def start(self) -> "Self":
         """Start this process.
 
         If the process has already been started, raise a ChildProcessError.
@@ -83,7 +85,7 @@ class ProcessProxy:
                 "moved or removed in another session."
             )
 
-    def start_safe(self) -> "t.Self":
+    def start_safe(self) -> "Self":
         """Start this process, but if it's already started do nothing.
 
         Returns: self so it can be chained after the constructor.
@@ -144,28 +146,28 @@ class ProcessProxy:
         except ValueError:
             return None  # do nothing if the process is not in the group anymore or the group is gone
 
-    def peek_output(self, nlines: "int | None" = None) -> list[str]:
+    def peek_output(self, nlines: "int | None" = None) -> t.List[str]:
         """Get up to the last nlines of output from the process, as a list of strings.
 
         Parameters:
             nlines (optional, int): The maximum number of lines to return. If None, all lines are returned.
 
         Returns:
-            list[str]: The last nlines of output (or fewer) from the monitored output_file.
+            t.List[str]: The last nlines of output (or fewer) from the monitored output_file.
                 Strings are newline-terminated, and so may be joined with `"".join(proc.peek_output())` to recreate
                 the file contents. If the process is not running or the output file does not exist, an empty list is
                 returned.
         """
         return self._deref_proc(when="you are trying to peek_output on").peek_output(nlines=nlines)
 
-    def monitor(self, nlines: "int | None" = 10) -> Iterator[list[str]]:
+    def monitor(self, nlines: "int | None" = 10) -> Iterator[t.List[str]]:
         """Get an Iterator that yields the last nlines from the output_file, and completes when the Process is finished.
 
         Parameters:
             nlines (int): number of lines of output to show.
 
         Returns:
-            list[str]: A list of strings representing the last nlines of output from this Process.
+            t.List[str]: A list of strings representing the last nlines of output from this Process.
         """
         while self.started:
             output = self.peek_output(nlines=nlines)
@@ -191,8 +193,8 @@ class ProcessProxy:
 
     # Typing for standard attributes that can be accessed via __getattr__
     _start_time: "float | None"
-    cmd: list[str]
-    env: dict[str, str]
+    cmd: t.List[str]
+    env: t.Dict[str, str]
     pid: "int | None"
     returncode: "int | None"
     state: "str | None"

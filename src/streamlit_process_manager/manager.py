@@ -54,7 +54,7 @@ class ProcessManager:
                     pass  # ignore if _cachefilehandle doesn't exist or doesn't have a .close method()
 
     @property
-    def groups(self) -> list[str]:
+    def groups(self) -> t.List[str]:
         """Return a list of ProcessGroups in this ProcessManager."""
         with self._lock:
             return list(self._groups.keys())
@@ -68,7 +68,7 @@ class ProcessManager:
         ...  # pragma: no cover
 
     @t.overload
-    def add(self, process: Iterable[Process], group: str, start: bool = False) -> list[ProcessProxy]:  # noqa: D102
+    def add(self, process: Iterable[Process], group: str, start: bool = False) -> t.List[ProcessProxy]:  # noqa: D102
         ...  # pragma: no cover
 
     def add(self, process: "Process | Iterable[Process]", group: str, start: bool = False):
@@ -81,7 +81,7 @@ class ProcessManager:
             start (bool): Specify True to start the processes as you add them if they are not already running.
 
         Returns:
-            Process | list[Process]:
+            Process | t.List[Process]:
         """
         if group in self._single_groups:
             raise ValueError(
@@ -96,7 +96,7 @@ class ProcessManager:
             _procs: Iterable[Process] = [process]  # type: ignore[list-item]
         else:
             _procs = process
-        _proxies: list[ProcessProxy] = []
+        _proxies: t.List[ProcessProxy] = []
         for proc in _procs:
             _proxy = self._groups[group].add(process=proc)
             _proxies.append(_proxy)
@@ -152,7 +152,7 @@ class ProcessManager:
 
         return _proc
 
-    def to_dict(self, groups: "Sequence[str] | None" = None) -> dict[str, list[Process.SavedProcessDict]]:
+    def to_dict(self, groups: "Sequence[str] | None" = None) -> dict[str, t.List[Process.SavedProcessDict]]:
         """Convert the current state of this ProcessMonitor and all contained Processes to a dict.
 
         Returns:
@@ -177,7 +177,7 @@ class ProcessManager:
         """Read the ProcessManager's state from disk (not currently used)."""
         with self._lock:
             self._cachefilehandle.seek(0)
-            data: dict[str, list[Process.SavedProcessDict]] = yaml.safe_load(self._cachefilehandle)
+            data: dict[str, t.List[Process.SavedProcessDict]] = yaml.safe_load(self._cachefilehandle)
             if not isinstance(data, dict):
                 raise ValueError(f"Bad cache data in {self._cachefilehandle}")
             for group_name, pg_data in data.items():
