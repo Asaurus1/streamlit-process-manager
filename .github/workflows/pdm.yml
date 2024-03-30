@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  python-minversion:
 
     runs-on: ubuntu-latest
 
@@ -27,3 +27,23 @@ jobs:
 
     - name: Lint
       run: pdm run lint
+
+  python-maxversion:
+
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v4
+        - name: Setup PDM
+          uses: pdm-project/setup-pdm@v4
+          with:
+            python-version: '3.12'
+
+        - name: Install dependencies
+          run: pdm update --dev && pdm install --dev
+
+        - name: Run tests
+          run: pdm run test
+
+        - name: Lint
+          run: pdm run lint
