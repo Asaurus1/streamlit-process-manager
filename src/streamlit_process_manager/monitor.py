@@ -176,10 +176,10 @@ class ProcessMonitor:
         return lines
 
 
-class ProcessMonitorGroup(Sequence[ProcessMonitor]):
+class ProcessMonitorGroup(Sequence):  # type: Sequence[ProcessMonitor]
     """Represents a group of ProcessMonitors."""
 
-    def __init__(self, monitors: Iterable[ProcessMonitor]):
+    def __init__(self, monitors: "Iterable[ProcessMonitor]"):
         """Create a group of ProcessMonitors from an iterable."""
         self._monitors: t.List[ProcessMonitor] = list(monitors)
 
@@ -255,7 +255,7 @@ class ProcessMonitorGroup(Sequence[ProcessMonitor]):
             pass
         return self
 
-    def __iter__(self) -> Iterator[ProcessMonitor]:
+    def __iter__(self) -> "Iterator[ProcessMonitor]":
         """Iterate over the ProcessMonitors in this group."""
         return iter(self._monitors)
 

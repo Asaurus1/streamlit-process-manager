@@ -7,6 +7,7 @@ import sys
 import time
 import unittest.mock as mock
 from pathlib import Path
+import typing as t
 
 import psutil
 import pytest
@@ -75,7 +76,7 @@ def started_test_process_fh(fake_process: process.Process):
 
 @pytest.fixture
 def real_process_short(TEST_OUTPUT_PATH):
-    proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "5"], TEST_OUTPUT_PATH, env={})
+    proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "5"], TEST_OUTPUT_PATH)
     yield proc
     proc.close_output()
     proc.terminate(wait_for_death=True)
@@ -83,7 +84,7 @@ def real_process_short(TEST_OUTPUT_PATH):
 
 @pytest.fixture
 def real_process_3s(TEST_OUTPUT_PATH):
-    proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "30"], TEST_OUTPUT_PATH, env={})
+    proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "30"], TEST_OUTPUT_PATH)
     psutil.Popen([sys.executable, "tests/test_data/subprocess_loop.py", "30"])
     yield proc
     proc.close_output()
@@ -92,7 +93,7 @@ def real_process_3s(TEST_OUTPUT_PATH):
 
 @pytest.fixture
 def real_process_infinite(TEST_OUTPUT_PATH):
-    proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "10000000000"], TEST_OUTPUT_PATH, env={})
+    proc = process.Process([sys.executable, "tests/test_data/subprocess_loop.py", "10000000000"], TEST_OUTPUT_PATH)
     yield proc
     proc.close_output()
     proc.terminate(wait_for_death=True)
@@ -126,25 +127,19 @@ def p_manager(get_manager):
 
 @pytest.fixture
 def pretend_windows():
-    with (
-        # mock.patch("sys.platform", new="win32"),
-        # mock.patch("os.name", new="nt"),
-        mock.patch("psutil.WINDOWS", new=True),
-        mock.patch("psutil.LINUX", new=False),
-        mock.patch("subprocess.CREATE_NEW_PROCESS_GROUP", new=0x200, create=True),
-        mock.patch("signal.CTRL_BREAK_EVENT", new=1, create=True),
-    ):
+    with mock.patch("psutil.WINDOWS", new=True),\
+        mock.patch("psutil.LINUX", new=False),\
+        mock.patch("subprocess.CREATE_NEW_PROCESS_GROUP", new=0x200, create=True),\
+        mock.patch("signal.CTRL_BREAK_EVENT", new=1, create=True)\
+    :
         yield
 
 
 @pytest.fixture
 def pretend_linux():
-    with (
-        # mock.patch("sys.platform", new="linux"),
-        # mock.patch("os.name", new="posix"),
-        mock.patch("psutil.WINDOWS", new=False),
-        mock.patch("psutil.LINUX", new=True),
-    ):
+    with mock.patch("psutil.WINDOWS", new=False),\
+        mock.patch("psutil.LINUX", new=True)\
+    :
         yield
 
 
@@ -677,7 +672,7 @@ def test_process_from_dict_not_started(TEST_OUTPUT_PATH: str):
 
 
 def test_process_from_dict_started(real_process_infinite: process.Process):
-    real_process_infinite.env = {"HELLO": "world"}  # HELLO must be capital here
+    real_process_infinite.env = {"SYSTEMROOT": "C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}  # HELLO must be capital here
     real_process_infinite.start()
     time.sleep(0.1)
     new_process = process.Process.from_dict(real_process_infinite.to_dict())

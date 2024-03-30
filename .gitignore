@@ -19,3 +19,6 @@ venv/
 
 # temp
 .temp/
+
+# tox
+.tox/
