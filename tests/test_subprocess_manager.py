@@ -1079,6 +1079,7 @@ def test_manager_to_dict(fake_process: process.Process, p_manager: manager.Proce
 def test_manager_read_write(fake_process: process.Process, get_manager):
     first_manager: manager.ProcessManager = get_manager()
     first_manager.add(fake_process, "test_group")
+    first_manager._cachefilehandle.close()  # close the filehandle before we create a new manager that opens it.
     new_manager: manager.ProcessManager = get_manager()
     new_manager._read_from_disk()
 
@@ -1092,7 +1093,7 @@ def test_manager_read_write(fake_process: process.Process, get_manager):
 
 
 def test_manager_read_bad_yaml(p_manager: manager.ProcessManager):
-    with mock.patch("yaml.safe_load", return_value=["not", "a", "dict"]):
+    with mock.patch("json.load", return_value=["not", "a", "dict"]):
         with pytest.raises(ValueError, match="Bad cache data"):
             p_manager._read_from_disk()
 

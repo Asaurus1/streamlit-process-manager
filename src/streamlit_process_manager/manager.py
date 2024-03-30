@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import io
+import json
 import threading
 import typing as t
 from collections import defaultdict
 from collections.abc import Iterable, Sequence  # pylint: disable=unused-import
 from pathlib import Path
 
-import yaml
 
 from streamlit_process_manager.process import Process
 from streamlit_process_manager.group import ProcessGroup
@@ -171,13 +171,14 @@ class ProcessManager:
         with self._lock:
             self._cachefilehandle.truncate(0)
             self._cachefilehandle.seek(0)
-            yaml.safe_dump(self.to_dict(), self._cachefilehandle)
+            json.dump(self.to_dict(), self._cachefilehandle)
+            self._cachefilehandle.flush()
 
     def _read_from_disk(self) -> None:
         """Read the ProcessManager's state from disk (not currently used)."""
         with self._lock:
             self._cachefilehandle.seek(0)
-            data: dict[str, t.List[Process.SavedProcessDict]] = yaml.safe_load(self._cachefilehandle)
+            data: dict[str, t.List[Process.SavedProcessDict]] = json.load(self._cachefilehandle)
             if not isinstance(data, dict):
                 raise ValueError(f"Bad cache data in {self._cachefilehandle}")
             for group_name, pg_data in data.items():
