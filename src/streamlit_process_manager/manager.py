@@ -1,10 +1,11 @@
+"Module for ProcessManager"
 from __future__ import annotations
 
 import io
 import threading
 import typing as t
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Sequence  # pylint: disable=unused-import
 from pathlib import Path
 
 import yaml
@@ -13,7 +14,6 @@ from streamlit_process_manager.process import Process
 from streamlit_process_manager.group import ProcessGroup
 from streamlit_process_manager.proxy import ProcessProxy
 
-stu = None  # temp
 
 class ProcessManager:
     """Singleton manager class for processes."""
@@ -105,8 +105,7 @@ class ProcessManager:
         self._write_to_disk()
         if len(_proxies) == 1:
             return _proxies[0]
-        else:
-            return _proxies
+        return _proxies
 
     def single(self, process: Process, group: "str | None" = None, start: bool = False) -> ProcessProxy:
         """Add a single process to a named group, or return the existing Process from that group.
@@ -125,6 +124,7 @@ class ProcessManager:
                 process inside of the named group.
         """
         if group is None:
+            # pylint: disable=import-outside-toplevel
             from streamlit.runtime.scriptrunner import get_script_run_ctx  # lazy import this
 
             if (script_ctx := get_script_run_ctx()) is None:

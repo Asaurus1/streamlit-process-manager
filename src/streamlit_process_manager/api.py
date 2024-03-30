@@ -1,10 +1,9 @@
-
+"""Streamlit Process Manager User API functions."""
 from __future__ import annotations
 
 import os
 import typing as t
 from collections.abc import Sequence
-from pathlib import Path
 
 import streamlit as st
 from streamlit.runtime.scriptrunner import get_script_run_ctx
@@ -12,10 +11,13 @@ from streamlit.runtime.scriptrunner import get_script_run_ctx
 from streamlit_process_manager.process import Process
 from streamlit_process_manager.proxy import ProcessProxy
 from streamlit_process_manager.manager import ProcessManager
-from streamlit_process_manager.monitor import ProcessMonitor, ProcessMonitorGroup, ProcessOrProxy
+from streamlit_process_manager.monitor import ProcessMonitor, ProcessMonitorGroup
 from streamlit_process_manager import _core
 
-stu = None  # Temp
+if t.TYPE_CHECKING:
+    from pathlib import Path
+    from streamlit_process_manager.types import ProcessOrProxy
+
 
 @st.cache_resource
 def get_manager(cachefile: "str | Path | None" = None) -> ProcessManager:
@@ -56,7 +58,7 @@ def st_process_monitor(
 
 @t.overload
 def st_process_monitor(
-    process: Sequence[ProcessOrProxy],
+    process: "Sequence[ProcessOrProxy]",
     label: "Sequence[str] | None" = None,
     expanded: bool = False,
     lang: str = "log",

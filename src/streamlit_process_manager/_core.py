@@ -1,3 +1,4 @@
+"""Core functions and constants for Streamlit Process Manager."""
 import typing as t
 from pathlib import Path
 

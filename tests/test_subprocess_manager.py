@@ -634,14 +634,14 @@ def test_process_to_dict(fake_process: process.Process, TEST_OUTPUT_PATH: str, p
 
 
 def test_process_from_pid(real_process_infinite: process.Process):
-    real_process_infinite.env = {"HELLO": "world"}  # HELLO must be capital here
+    real_process_infinite.env = {"SYSTEMROOT": "C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}
     real_process_infinite.start()
     time.sleep(0.1)
     new_process = process.Process.from_pid(real_process_infinite.pid, output_file="test")
     assert not isinstance(new_process, process.FinalizedProcess)
     assert new_process.pid == real_process_infinite.pid
     assert new_process._start_time == pytest.approx(real_process_infinite._start_time, abs=0.1)
-    assert new_process.env == real_process_infinite.env
+    assert process._do_evn_dicts_match(new_process.env, real_process_infinite.env)
     assert new_process.cmd == real_process_infinite.cmd
     assert new_process.output_file == Path("test")
 
@@ -672,7 +672,7 @@ def test_process_from_dict_not_started(TEST_OUTPUT_PATH: str):
 
 
 def test_process_from_dict_started(real_process_infinite: process.Process):
-    real_process_infinite.env = {"SYSTEMROOT": "C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}  # HELLO must be capital here
+    real_process_infinite.env = {"SYSTEMROOT": "C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}
     real_process_infinite.start()
     time.sleep(0.1)
     new_process = process.Process.from_dict(real_process_infinite.to_dict())
@@ -682,7 +682,7 @@ def test_process_from_dict_started(real_process_infinite: process.Process):
     assert new_process.cmd == real_process_infinite.cmd
     assert new_process.output_file == real_process_infinite.output_file
     assert new_process.output_encoding == real_process_infinite.output_encoding
-    assert new_process.env == real_process_infinite.env
+    assert process._do_evn_dicts_match(new_process.env, real_process_infinite.env)
     assert new_process.state == "running"
     assert new_process._proc is not None
     assert new_process._start_time == real_process_infinite._start_time

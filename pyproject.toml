@@ -42,5 +42,16 @@ mypy = "mypy --install-types --non-interactive src/streamlit_process_manager"
 test = "pytest"
 pylint = "pylint src/streamlit_process_manager"
 lint = {composite = ["pylint", "mypy"]}
+check = {composite = ["test", "lint"]}
 example = "streamlit run examples/example.py"
 freeze = "pdm export --editable-self --no-hashes -o requirements.txt"
+
+
+[tool.pylint]
+max-line-length = 120
+disable = [
+    "E0001",
+    "R1735",
+    "R0913",
+    "W0511",
+]

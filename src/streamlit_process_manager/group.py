@@ -1,14 +1,15 @@
+"""Module for ProcessGroup."""
 from __future__ import annotations
 
 import threading
 import typing as t
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence  # pylint: disable=unused-import
 
 from streamlit_process_manager.process import Process
 from streamlit_process_manager import proxy, _core
 
 
-class ProcessGroup(Sequence):  # type: Sequence[proxy.ProcessProxy]
+class ProcessGroup(Sequence):
     """Container for multiple Process objects."""
 
     def __init__(self, procs: "Iterable[Process] | None" = None):

@@ -1,15 +1,17 @@
+"""Module for ProcessProxy."""
 from __future__ import annotations
 
 import typing as t
 import weakref
 from collections.abc import Iterator
-from pathlib import Path
 
 from streamlit_process_manager.process import Process
-from streamlit_process_manager import group, _core
+from streamlit_process_manager import _core
 
 if t.TYPE_CHECKING:
     from streamlit_process_manager.types import Self
+    from streamlit_process_manager import group
+    from pathlib import Path
 
 
 T = t.TypeVar("T")
@@ -79,11 +81,10 @@ class ProcessProxy:
         if (pgroup := self._deref_pgroup(when="you are trying to start")) is None or proc in pgroup._procs:
             proc.start()
             return self
-        else:
-            raise _core.UnsafeOperationError(
-                "The Process is no longer part of its original ProcessGroup and cannot be started. It may have been "
-                "moved or removed in another session."
-            )
+        raise _core.UnsafeOperationError(
+            "The Process is no longer part of its original ProcessGroup and cannot be started. It may have been "
+            "moved or removed in another session."
+        )
 
     def start_safe(self) -> "Self":
         """Start this process, but if it's already started do nothing.
@@ -94,8 +95,8 @@ class ProcessProxy:
         proc = self._deref_proc(when="you are trying to start")
         if proc.can_be_started:
             return self.start()
-        else:
-            return self
+        # else
+        return self
 
     def terminate(self, wait_for_death: bool = False):
         """Call to force-kill this process.
@@ -106,11 +107,10 @@ class ProcessProxy:
         proc = self._deref_proc(when="you are trying to terminate")
         if (pgroup := self._deref_pgroup(when="you are trying to terminate")) is None or proc in pgroup._procs:
             return proc.terminate(wait_for_death=wait_for_death)
-        else:
-            raise _core.UnsafeOperationError(
-                "The Process is no longer part of its original ProcessGroup and cannot be terminated. It may have been "
-                "moved or removed in another session."
-            )
+        raise _core.UnsafeOperationError(
+            "The Process is no longer part of its original ProcessGroup and cannot be terminated. It may have been "
+            "moved or removed in another session."
+        )
 
     def interrupt(self, wait_for_death: bool = True, force: bool = False):
         """Call to interrupt this process.
@@ -127,11 +127,10 @@ class ProcessProxy:
         proc = self._deref_proc(when="you are trying to interrupt")
         if (pgroup := self._deref_pgroup(when="you are trying to interrupt")) is None or proc in pgroup._procs:
             return proc.interrupt(wait_for_death=wait_for_death, force=force)
-        else:
-            raise _core.UnsafeOperationError(
-                "The Process is no longer part of its original ProcessGroup and cannot be interrupted. It may have been"
-                " moved or removed in another session."
-            )
+        raise _core.UnsafeOperationError(
+            "The Process is no longer part of its original ProcessGroup and cannot be interrupted. It may have been"
+            " moved or removed in another session."
+        )
 
     def remove_from_pgroup(self) -> None:
         """Remove this Process from it's ProcessGroup (if it exists).
@@ -174,8 +173,8 @@ class ProcessProxy:
             if self.finished:  # pylint: disable=using-constant-test
                 yield output
                 return
-            else:
-                yield output
+            # else
+            yield output
 
     def to_dict(self) -> Process.SavedProcessDict:
         """Convert this Process into a dictionary representation."""

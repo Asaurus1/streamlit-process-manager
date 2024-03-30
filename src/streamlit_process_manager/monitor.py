@@ -1,3 +1,4 @@
+"""Module for ProcessMonitor and ProcessMonitorGroup."""
 from contextlib import contextmanager
 import time
 import typing as t
@@ -8,7 +9,6 @@ import streamlit as st
 from streamlit.elements.lib.mutable_status_container import StatusContainer
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
-from streamlit_process_manager.process import Process
 from streamlit_process_manager.proxy import ProcessProxy
 from streamlit_process_manager._core import (
     INTERRUPT_BTN_LABEL,
@@ -19,14 +19,8 @@ from streamlit_process_manager._core import (
 )
 
 if t.TYPE_CHECKING:
-    from streamlit_process_manager.types import Self, TypeAlias
+    from streamlit_process_manager.types import Self, ProcessOrProxy
 
-    ProcessOrProxy: "TypeAlias" = "Process | ProcessProxy"
-else:
-    ProcessOrProxy = None
-
-
-stu = None  # temp
 
 class ProcessMonitor:
     """Represents a streamlit widget which shows the current status and controls for a single Process."""
@@ -43,7 +37,7 @@ class ProcessMonitor:
 
     def __init__(
         self,
-        process: ProcessOrProxy,
+        process: "ProcessOrProxy",
         label: "str | None" = None,
         expanded: "bool | None" = None,
         lang: str = "log",
@@ -176,7 +170,7 @@ class ProcessMonitor:
         return lines
 
 
-class ProcessMonitorGroup(Sequence):  # type: Sequence[ProcessMonitor]
+class ProcessMonitorGroup(Sequence):
     """Represents a group of ProcessMonitors."""
 
     def __init__(self, monitors: "Iterable[ProcessMonitor]"):
@@ -203,7 +197,8 @@ class ProcessMonitorGroup(Sequence):  # type: Sequence[ProcessMonitor]
 
         Yields:
             self: this ProcessMonitorGroup object
-            output (t.List[t.List[str]]): A list of list of strings representing nlines from each monitor updated this cycle
+            output (t.List[t.List[str]]): A list of list of strings representing nlines from each monitor updated
+                this cycle
         """
         last_running_states = running_states = [False] * len(self._monitors)
         while True:
@@ -276,12 +271,13 @@ class ProcessMonitorGroup(Sequence):  # type: Sequence[ProcessMonitor]
         return self._monitors[index]
 
 
-def _render_process_control_buttons(process: ProcessOrProxy):
+def _render_process_control_buttons(process: "ProcessOrProxy"):
     """Draws a set of control streamlit buttons for the specified Process side-by-side.
 
     If 'remove_cb' is given, a "Remove Process" button will be displayed, with
     an 'on_click' event set to the callback and the Process itself as the first and only argument.
     """
+    # _wrap_exception is actually callable pylint: disable=not-callable
     cols = st.columns((25, 25, 40, 20))
 
     # All callbacks are wrapped in "_wrap_exception" so that they kindly display t.Any exception messages encountered
@@ -327,7 +323,7 @@ def _wrap_exception():
     """Wrap a function so that any exceptions are caught and displayed in streamlit, but your page continues to run."""
     try:
         yield
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         st.exception(exc)
     finally:
         st.divider()

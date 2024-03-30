@@ -1,3 +1,4 @@
+"""Module for Process and its subclasses."""
 from __future__ import annotations
 
 import io
@@ -125,8 +126,7 @@ class Process:
         """Start the process if it can be started, otherwise do nothing."""
         if self.can_be_started:
             return self.start()
-        else:
-            return self
+        return self
 
     def _start_process(self, f=None):
         """Start the internal _proc (Popen)."""
@@ -172,11 +172,10 @@ class Process:
         if not self.can_be_interrupted:
             if force:
                 return self.terminate(wait_for_death=wait_for_death)
-            else:
-                raise _core.UnsafeOperationError(
-                    "This process cannot be safely interrupted on your platform. Use .terminate() instead or set "
-                    "'force=True'"
-                )
+            raise _core.UnsafeOperationError(
+                "This process cannot be safely interrupted on your platform. Use .terminate() instead or set "
+                "'force=True'"
+            )
 
         self._raise_if_proc_not_child(action="interrupt")
         try:
@@ -202,7 +201,9 @@ class Process:
             and self.running
             and not _is_pid_child_of_current(pid)
         ):
-            raise _core.UnsafeOperationError(f"Cannot {action} process {pid} which is not a child of the current process.")
+            raise _core.UnsafeOperationError(
+                f"Cannot {action} process {pid} which is not a child of the current process."
+            )
 
     class SavedProcessDict(t.TypedDict):
         """Represents a Process that has been saved to disk."""
@@ -264,7 +265,7 @@ class Process:
                 allowed_start_time = data["start_time"]
                 allowed_env = data["env"]
                 # pylint: disable=protected-access
-                if allowed_env is not None and maybe_new_proc.env != _marshall_env_dict(allowed_env):
+                if allowed_env is not None and not _do_evn_dicts_match(allowed_env, maybe_new_proc.env):
                     maybe_new_proc = None
                     finalize_because = f"Process with pid {data['pid']} has an unexpected environment."
                 elif allowed_start_time is not None and allowed_start_time != maybe_new_proc._start_time:
@@ -541,8 +542,8 @@ class Process:
             if self.finished:
                 yield output
                 return
-            else:
-                yield output
+            # else
+            yield output
 
     @property
     def state(self) -> t.Literal["complete", "error", "running", None]:
@@ -553,12 +554,10 @@ class Process:
         if self.finished:
             if self.returncode == 0:
                 return "complete"
-            else:
-                return "error"
-        elif self.started:
+            return "error"
+        if self.started:
             return "running"
-        else:
-            return None
+        return None
 
     def open_output(self, encoding=None) -> "io.TextIOWrapper | None":
         """Open the output read filehandle of this Process object with the specified encoding.
@@ -696,5 +695,15 @@ def _marshall_env_dict(envdict: Mapping[str, T]) -> t.Dict[str, T]:
             # https://github.com/python/cpython/issues/105436
             return {"FAKE_ENV_VARIABLE_FOR_CPYTHON_GH_105436": "1"}  # type: ignore
         return {k.upper(): v for k, v in envdict.items()}
-    else:
-        return dict(**envdict)
+    return dict(**envdict)
+
+
+def _do_evn_dicts_match(envdict1: Mapping[str, str], envdict2: Mapping[str, str]) -> bool:
+    """Return true if two environment dicts match."""
+    # Remove variables that have potentially been injected by python itself
+    keys_to_remove = [
+        "__PYVENV_LAUNCHER__",
+    ]
+    env1 = dict((k, v) for k, v in _marshall_env_dict(envdict1).items() if k not in keys_to_remove)
+    env2 = dict((k, v) for k, v in _marshall_env_dict(envdict2).items() if k not in keys_to_remove)
+    return env1 == env2
