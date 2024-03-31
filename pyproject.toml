@@ -22,7 +22,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
-    "Framework :: Streamlit",
     "Intended Audience :: Information Technology",
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Science/Research",
