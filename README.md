@@ -1,5 +1,5 @@
 # Streamlit Process Manager
-![Streamlit Process Monitor Animation](.github/images/ProcessMonitor.gif)
+![Streamlit Process Monitor Animation](https://raw.githubusercontent.com/asaurus1/streamlit-process-manager/main/.github/images/ProcessMonitor.gif)
 
 Let's be honest, trying to manage external processes or subprocesses from a [Streamlit](https://github.com/streamlit/streamlit) app is tricky. The execution model makes it difficult to keep track of which processes are supposed to be running and which ones aren't. Half the time you end up spawning twenty different processes all trying to access the same file and stomping all over one another.
 
