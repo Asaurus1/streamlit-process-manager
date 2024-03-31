@@ -634,7 +634,7 @@ def test_process_to_dict(fake_process: process.Process, TEST_OUTPUT_PATH: str, p
 
 
 def test_process_from_pid(real_process_infinite: process.Process):
-    real_process_infinite.env = {"SYSTEMROOT": "C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}
+    real_process_infinite.env = {"SYSTEMROOT": r"C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}
     real_process_infinite.start()
     time.sleep(0.1)
     new_process = process.Process.from_pid(real_process_infinite.pid, output_file="test")
@@ -672,7 +672,7 @@ def test_process_from_dict_not_started(TEST_OUTPUT_PATH: str):
 
 
 def test_process_from_dict_started(real_process_infinite: process.Process):
-    real_process_infinite.env = {"SYSTEMROOT": "C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}
+    real_process_infinite.env = {"SYSTEMROOT": r"C:\Windows", "PYTHONUTF8": "1", "PYTHONHASHSEED": "074"}
     real_process_infinite.start()
     time.sleep(0.1)
     new_process = process.Process.from_dict(real_process_infinite.to_dict())

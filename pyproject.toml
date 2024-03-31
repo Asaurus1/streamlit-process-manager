@@ -17,17 +17,6 @@ license = {text = "MIT"}
 dev = [
     "tox>=4.14.2",
 ]
-
-[build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
-
-
-[tool.pdm]
-distribution = true
-
-
-[tool.pdm.dev-dependencies]
 test = [
     "pytest>=8.1.1",
 ]
@@ -43,7 +32,17 @@ lint = [
     "types-psutil>=5.9.5.20240316",
     "types-pycurl>=7.45.2.20240311",
     "types-toml>=0.10.8.20240310",
+    "types-openpyxl>=3.1.0.20240311",
 ]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pdm]
+distribution = true
+
 
 [tool.pdm.scripts]
 mypy = "mypy --install-types --non-interactive src/streamlit_process_manager"

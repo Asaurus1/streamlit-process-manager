@@ -5,11 +5,11 @@
 groups = ["default", "dev", "lint", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:60dd59d74f8380383db5ff7294184f19ee91ff75e279d757c55b000e44798faa"
+content_hash = "sha256:92609775ad1e976d7517868ae16d71e36090f12edf3969aedc36bca70388696d"
 
 [[package]]
 name = "altair"
-version = "5.2.0"
+version = "5.3.0"
 requires_python = ">=3.8"
 summary = "Vega-Altair: A declarative statistical visualization library for Python."
 groups = ["default"]
@@ -23,8 +23,8 @@ dependencies = [
     "typing-extensions>=4.0.1; python_version < \"3.11\"",
 ]
 files = [
-    {file = "altair-5.2.0-py3-none-any.whl", hash = "sha256:8c4888ad11db7c39f3f17aa7f4ea985775da389d79ac30a6c22856ab238df399"},
-    {file = "altair-5.2.0.tar.gz", hash = "sha256:2ad7f0c8010ebbc46319cc30febfb8e59ccf84969a201541c207bc3a4fa6cf81"},
+    {file = "altair-5.3.0-py3-none-any.whl", hash = "sha256:7084a1dab4d83c5e7e5246b92dc1b4451a6c68fd057f3716ee9d315c8980e59a"},
+    {file = "altair-5.3.0.tar.gz", hash = "sha256:5a268b1a0983b23d8f9129f819f956174aa7aea2719ed55a52eba9979b9f6675"},
 ]
 
 [[package]]
@@ -1274,6 +1274,17 @@ dependencies = [
 files = [
     {file = "types-jsonschema-4.21.0.20240311.tar.gz", hash = "sha256:f7165ce70abd91df490c73b089873afd2899c5e56430ee495b64f851ad01f287"},
     {file = "types_jsonschema-4.21.0.20240311-py3-none-any.whl", hash = "sha256:e872f5661513824edf9698f73a66c9c114713d93eab58699bd0532e7e6db5750"},
+]
+
+[[package]]
+name = "types-openpyxl"
+version = "3.1.0.20240311"
+requires_python = ">=3.8"
+summary = "Typing stubs for openpyxl"
+groups = ["lint"]
+files = [
+    {file = "types-openpyxl-3.1.0.20240311.tar.gz", hash = "sha256:4ad31445ff313d6ae79a176a2e31d4232378709cab68b4e9107fb167de14c37f"},
+    {file = "types_openpyxl-3.1.0.20240311-py3-none-any.whl", hash = "sha256:f1e32639a8d6d26528c342ee4566743ce4149cc5b35b591c46a7370db39bc72b"},
 ]
 
 [[package]]

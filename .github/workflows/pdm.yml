@@ -2,48 +2,62 @@ name: PDM CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
-  python-minversion:
-
+  lint:
     runs-on: ubuntu-latest
+    env:
+      PDM_IGNORE_SAVED_PYTHON: 1
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup PDM
-      uses: pdm-project/setup-pdm@v4
-      with:
-        python-version: '3.8'
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.8"
 
-    - name: Install dependencies
-      run: pdm install --dev
+      - name: Install dependencies
+        run: pdm install -dG lint
 
-    - name: Run tests
-      run: pdm run test
+      - name: Lint
+        run: pdm run lint
 
-    - name: Lint
-      run: pdm run lint
+  python-minversion:
+    runs-on: ubuntu-latest
+    env:
+      PDM_IGNORE_SAVED_PYTHON: 1
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.8"
+
+      - name: Install dependencies
+        run: pip install -e .[test]
+
+      - name: Run tests
+        run: pdm run test
 
   python-maxversion:
+    runs-on: ubuntu-latest
+    env:
+      PDM_IGNORE_SAVED_PYTHON: 1
 
-        runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.12"
 
-        steps:
-        - uses: actions/checkout@v4
-        - name: Setup PDM
-          uses: pdm-project/setup-pdm@v4
-          with:
-            python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -e .[test]
 
-        - name: Install dependencies
-          run: pdm update --dev && pdm install --dev
-
-        - name: Run tests
-          run: pdm run test
-
-        - name: Lint
-          run: pdm run lint
+      - name: Run tests
+        run: pdm run test
