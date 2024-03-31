@@ -1,6 +1,6 @@
 [project]
 name = "streamlit-process-manager"
-version = "0.1.0"
+version = "0.0.1a"
 description = "Manage the heck out of long-running processes in streamlit"
 authors = [
     {name = "Alexander Martin", email = "fauxjunk-1@yahoo.com"},
@@ -12,6 +12,31 @@ dependencies = [
 requires-python = "!=3.9.7,>=3.8"
 readme = "README.md"
 license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Shells",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/Asaurus1/streamlit-process-manager"
+Issues = "https://github.com/Asaurus1/streamlit-process-manager/issues"
 
 [project.optional-dependencies]
 dev = [
