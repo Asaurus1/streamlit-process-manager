@@ -89,3 +89,6 @@ disable = [
     "R0913",
     "W0511",
 ]
+
+[tool.black]
+line-length = 120
