@@ -64,10 +64,12 @@ lint = [
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
-
 [tool.pdm]
 distribution = true
+ignore_package_warnings = ["pandas-stubs"]
 
+[tool.pdm.resolution]
+excludes = ["numpy", "pandas"]
 
 [tool.pdm.scripts]
 mypy = "mypy --install-types --non-interactive src/streamlit_process_manager"
