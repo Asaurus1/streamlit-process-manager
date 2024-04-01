@@ -1,4 +1,5 @@
 """Streamlit Process Manager User API functions."""
+
 from __future__ import annotations
 
 import os
@@ -8,7 +9,7 @@ from collections.abc import Sequence
 import streamlit as st
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
-from streamlit_process_manager.process import Process
+from streamlit_process_manager.process import Process, RerunableProcess
 from streamlit_process_manager.proxy import ProcessProxy
 from streamlit_process_manager.manager import ProcessManager
 from streamlit_process_manager.monitor import ProcessMonitor, ProcessMonitorGroup
@@ -170,3 +171,75 @@ def st_process_monitor(
         )
 
     return _pm_return_value
+
+
+_unspecified = object()  # sentinel
+
+
+def run(
+    args,
+    *,
+    output_file=_unspecified,
+    encoding="utf-8",
+    env=None,
+    group=None,
+    label=None,
+    expanded=None,
+    lang="log",
+    loop=True,
+    nlines=10,
+    dt=1.0,
+    showcontrols=True,
+    showruntime=True,
+    showlinenumbers=False,
+    stripempty=True,
+    rerunable=False,
+    start_trigger=_unspecified,
+):
+    """Run a subprocess and display its output in a streamlit widget.
+
+        >>> import projects.utils.subprocess_manager as spm
+        >>>
+        >>> spm.run(["python", "my_code.py"], output_file="my_code.output", loop=True)
+
+    This starts a child python process to run "my_code.py" and directs the STDOUT of that process to
+    "my_code.output", then displays a process monitor object which tails the contents of "my_code.output"
+    until the process completes.
+    """
+    # TODO: add a 'cwd' argument
+    # pylint: disable=too-many-arguments
+
+    # Get the global ProcessManager
+    pm = get_manager()
+
+    if output_file is _unspecified:
+        argshash = hash((args, output_file, encoding, env))
+        output_file = Path(f".process-manager/process-{argshash}.output")
+
+    # Configure the Process and start it
+    process_cls = RerunableProcess if rerunable else Process
+    process = pm.single(
+        process_cls(args, output_file, output_encoding=encoding, env=env, label=label),
+        group=group,
+    )
+
+    if start_trigger is _unspecified:
+        start_trigger = not process.started
+    if start_trigger:
+        process.start_safe()
+
+    # Run the process and monitor it in streamlit!
+    pmon: ProcessMonitor = st_process_monitor(
+        process=process,
+        label=label,
+        expanded=expanded,
+        lang=lang,
+        showcontrols=showcontrols,
+        showruntime=showruntime,
+        showlinenumbers=showlinenumbers,
+        stripempty=stripempty,
+    )
+    if loop:
+        pmon.loop_until_finished(nlines=nlines, dt=dt)
+
+    return pmon
