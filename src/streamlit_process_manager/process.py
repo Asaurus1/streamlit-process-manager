@@ -674,14 +674,10 @@ class FinalizedProcess(Process):
         return False
 
 
-def _default_label_if_unset(label: "str | None", proc: Process) -> str:
-    """Return a concatenated and truncated string from the process's "cmd" if 'label' is None.
-
-    Otherwise return the label.
-    """
+def _default_label_if_unset(label: "str | None", args: "t.Sequence[str]") -> str:
+    """Return the label specified, or the joined args as a string if None."""
     if label is None:
-        cmd_str = " ".join(proc.cmd).replace("\n", " ")
-        return cmd_str[:30] + ("..." if len(cmd_str) > 30 else "")
+        return " ".join(args).replace("\n", " ")
     return label
 
 

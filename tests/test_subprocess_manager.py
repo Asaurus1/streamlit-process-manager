@@ -381,9 +381,12 @@ def test_process_open_output_with_no_file(fake_process: process.Process):
 
 
 def test_process_start_common_args(fake_process: process.Process):
+    fake_process.env = {"MY": "VAR"}
+    fake_process.cwd = "/dev/null"
     mock_sp = start_with_mock_sp(fake_process)
     assert mock_sp.call_args[0][0] == fake_process.cmd
     assert mock_sp.call_args[1]["env"] == fake_process.env
+    assert mock_sp.call_args[1]["cwd"] == fake_process.cwd
 
 
 def test_process_start_with_no_file(fake_process: process.Process):
@@ -1119,6 +1122,12 @@ def test_process_monitor_core(mock_output, fake_process: process.Process):
     assert pm._get_lines_from_process(10) == ["test\n", "lines\n"]
 
 
+def test_process_monitor_long_label(fake_process: process.Process):
+    fake_process.label = "a" * 50
+    pm = monitor.ProcessMonitor(fake_process)
+    assert pm.config.label == "a"*30 + "..."
+
+
 @mock.patch.object(process.Process, "peek_output")
 def test_process_monitor_skip_empty_lines(mock_output, fake_process: process.Process):
     pm = monitor.ProcessMonitor(fake_process)
@@ -1390,10 +1399,8 @@ def test_process_monitor_func_app(real_process_3s, real_process_short, real_proc
 
 # Helper Function Tests -----------------------------------------------------
 def test_default_label_if_unset(fake_process: process.Process):
-    assert process._default_label_if_unset("set_label", fake_process) == "set_label"
-    assert process._default_label_if_unset(None, fake_process) == "foo bar"
-    fake_process.cmd = ["a"] * 50
-    assert process._default_label_if_unset(None, fake_process) == " ".join(["a"] * 15) + " ..."
+    assert process._default_label_if_unset("set_label", fake_process.cmd) == "set_label"
+    assert process._default_label_if_unset(None, fake_process.cmd) == "foo bar"
 
 
 def test_is_pid_child_of_current(real_process_infinite):
