@@ -1,4 +1,5 @@
 """Module for ProcessMonitor and ProcessMonitorGroup."""
+
 from contextlib import contextmanager
 import time
 import typing as t
@@ -46,10 +47,25 @@ class ProcessMonitor:
         show_line_numbers: bool = False,
         strip_empty_lines: bool = True,
     ):
-        """Create a monitor widget for a single Process."""
+        """Create a monitor widget for a single Process.
+
+        Parameters:
+            process (Process or ProcessProxy): The Process to be monitored.
+            label (optional, str): If specified, replaces the Process's label with a custom one.
+            expanded (optional, bool): Whether to expand the monitor widget while the process is running.
+                Default False.
+            lang (optional, str): The language to format process output in within the monitor widget.
+                Defaults to "log".
+            show_controls, show_runtime, show_line_numbers (optional, bool): Enable/disable different display aspects
+                of the monitoring widget.
+            strip_empty_lines (optional, bool): If True, the monitor widget will not show any entirely-empty lines
+                output from the process. Default True.
+        """
         self.process: ProcessOrProxy = process
+        _process_label: str = process.label[:30] + "..." if len(process.label) > 30 else process.label
+
         self.config = self.PMConfig(
-            label=label or process.label,
+            label=label or _process_label,
             show_controls=show_controls,
             show_runtime=show_runtime,
             show_line_numbers=show_line_numbers,

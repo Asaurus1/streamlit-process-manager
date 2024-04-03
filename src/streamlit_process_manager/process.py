@@ -1,4 +1,5 @@
 """Module for Process and its subclasses."""
+
 from __future__ import annotations
 
 import io
@@ -16,6 +17,7 @@ from streamlit_process_manager import _core
 
 if t.TYPE_CHECKING:
     from streamlit_process_manager.types import Self
+    from _typeshed import StrPath
 
 
 T = t.TypeVar("T")
@@ -33,11 +35,12 @@ class Process:
     def __init__(
         self,
         cmd: Iterable[str],
-        output_file: "Path | str | None",
+        output_file: "StrPath | None",
         *,
         output_encoding: str = "utf-8",
         capture: t.Literal["none", "stderr", "stdout", "all"] = "all",
         env: "Mapping[str, str] | None" = None,
+        cwd: "StrPath | None" = None,
         label: "str | None" = None,
         cache_output_capture: bool = True,
     ):
@@ -46,14 +49,15 @@ class Process:
         Parameters:
             cmd (Iterable[str]): A sequence of strings representing the command to be run. Shell process commands
                 are NOT supported due to the complexities of terminating shell processes.
-            output_file (PathLike): A filepath representing an output file to monitor. The Popen process must already
+            output_file (StrPath): A filepath representing an output file to monitor. The Popen process must already
                 be configured to output to this file.
             output_encoding (optional, t.Any valid string encoding): Which encoding to use when reading the output file,
                 defaults to UTF-8.
             capture (one of "none", "stderr", "stdout", "all"): Which output streams, if t.Any, to redirect to
                 output_file in the created process. Defaults to "all".
-            env (Mapping[str, str]): A mapping/dict representing the environment to send to the current process.
-                Defaults to the current process's environment if not specified.
+            env (optional, Mapping[str, str]): A mapping/dict representing the environment to send to the current
+                process. Defaults to the current process's environment if not specified.
+            cwd (optional, StrPath): A Path to the directory where this command will be run. Defaults to os.getcwd().
             label (optional, str): A label to assign to this process. Defaults to the command line arguments.
             cache_output_capture (optional, bool): Whether to cache lines read from the output file.
 
@@ -102,8 +106,9 @@ class Process:
         Disable this if you expect the process to rewrite or delete lines in the output file, rather than
         simply write in "append" mode. Disabling will decrease performance for
         large output files. Ignored if output_file is None."""
-        self.label: str = _default_label_if_unset(label, self)
+        self.label: str = _default_label_if_unset(label, self.cmd)
         "A label for the process."
+        self.cwd: "StrPath | None" = cwd
 
     def start(self) -> "Self":
         """Start the process.
@@ -132,7 +137,9 @@ class Process:
         """Start the internal _proc (Popen)."""
         stdout_dest, stderr_dest = self._get_output_destinations(f)
         cflags = 0  # subprocess.CREATE_NEW_PROCESS_GROUP if psutil.WINDOWS else 0, see .interrupt()
-        self._proc = psutil.Popen(self.cmd, stdout=stdout_dest, stderr=stderr_dest, env=self.env, creationflags=cflags)
+        self._proc = psutil.Popen(
+            self.cmd, stdout=stdout_dest, stderr=stderr_dest, env=self.env, creationflags=cflags, cwd=self.cwd
+        )
         self._can_be_interrupted = not psutil.WINDOWS  # True can't be used here; see .interrupt()
         self._start_time = self._proc.create_time()
         self._poll.cache_clear()
@@ -226,7 +233,7 @@ class Process:
             label=self.label,
             state=self.state,
             env=self.env,
-            output_file=str(self.output_file),
+            output_file=str(self.output_file) if self.output_file is not None else None,
             output_encoding=self.output_encoding,
             start_time=self._start_time,
             returncode=self.returncode,
@@ -299,7 +306,7 @@ class Process:
     def from_existing(
         cls,
         proc: "psutil.Popen | subprocess.Popen",
-        output_file: "str | Path | None",
+        output_file: "StrPath | None",
         output_encoding: str = "utf-8",
         label: "str | None" = None,
         cache_output_capture: bool = False,
@@ -355,7 +362,7 @@ class Process:
     def from_pid(
         cls,
         pid: int,
-        output_file: "str | Path | None",
+        output_file: "StrPath | None",
         output_encoding: str = "utf-8",
         label: "str | None" = None,
         cache_output_capture: bool = False,
