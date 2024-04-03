@@ -92,3 +92,6 @@ disable = [
 
 [tool.black]
 line-length = 120
+
+[tool.setuptools.package-data]
+"pkgname" = ["py.typed"]
