@@ -11,7 +11,7 @@ dependencies = [
 ]
 requires-python = "!=3.9.7,>=3.8"
 readme = "README.md"
-license = {text = "MIT"}
+license = {file = "LICENCE"}
 classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",

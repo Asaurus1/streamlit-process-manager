@@ -82,7 +82,7 @@ you can just run it. Any Python's not available on your system will be skipped.
 pdm run tox
 ```
 
-## Licence
+## Licence - Apache 2.0
 Copyright 2024 by Alexander Martin
 
 Licensed under the Apache License, Version 2.0 (the "License");
