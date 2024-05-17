@@ -36,6 +36,7 @@ from streamlit_process_manager._core import (
 
 if t.TYPE_CHECKING:
     from streamlit_process_manager.types import Self, ProcessOrProxy
+    from streamlit.delta_generator import DeltaGenerator
 
 
 class ProcessMonitor:
@@ -90,9 +91,9 @@ class ProcessMonitor:
 
         # Render
         self.status: StatusContainer = st.status(**self._eval_status_state(expanded=expanded))  # type: ignore
-        self._controls_empty: "st._DeltaGenerator" = self.status.empty()
-        self._output_emtpy: "st._DeltaGenerator" = self.status.empty()
-        self.contents: "st._DeltaGenerator" = self.status.container()  # A place for "loop" callers to put content
+        self._controls_empty: "DeltaGenerator" = self.status.empty()
+        self._output_emtpy: "DeltaGenerator" = self.status.empty()
+        self.contents: "DeltaGenerator" = self.status.container()  # A place for "loop" callers to put content
         self._draw_controls()
 
     def update(self, nlines: "int | None" = 10) -> "t.List[str]":

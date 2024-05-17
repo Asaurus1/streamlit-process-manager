@@ -287,7 +287,11 @@ class Process:
                 allowed_start_time = data["start_time"]
                 allowed_env = data["env"]
                 # pylint: disable=protected-access
-                if allowed_env is not None and not _do_evn_dicts_match(allowed_env, maybe_new_proc.env):
+                if (
+                    allowed_env is not None
+                    and maybe_new_proc.env is not None
+                    and not _do_evn_dicts_match(allowed_env, maybe_new_proc.env)
+                ):
                     maybe_new_proc = None
                     finalize_because = f"Process with pid {data['pid']} has an unexpected environment."
                 elif allowed_start_time is not None and allowed_start_time != maybe_new_proc._start_time:
