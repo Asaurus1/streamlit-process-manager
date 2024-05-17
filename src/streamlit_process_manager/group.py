@@ -23,6 +23,9 @@ from collections.abc import Iterable, Iterator, Sequence  # pylint: disable=unus
 from streamlit_process_manager.process import Process
 from streamlit_process_manager import proxy, _core
 
+if t.TYPE_CHECKING:
+    from streamlit_process_manager.types import ProcessOrProxy
+
 
 class ProcessGroup(Sequence):
     """Container for multiple Process objects."""
@@ -54,6 +57,8 @@ class ProcessGroup(Sequence):
         """
         if process in self._procs:
             raise ValueError("Process already exists in ProcessGroup, cannot add twice.")
+        if isinstance(process, proxy.ProcessProxy):
+            raise ValueError("Cannot add a ProcessProxy to a group.")
         self._procs.append(process)
         return proxy.ProcessProxy(process, pgroup=self)
 
@@ -131,7 +136,7 @@ class ProcessGroup(Sequence):
         with self._lock:
             self._procs.clear()
 
-    def remove(self, proc: Process):
+    def remove(self, proc: "ProcessOrProxy"):
         """Remove the specified Process from this group.
 
         If the Process is running, it cannot be removed and will raise an UnsafeOperationError.
@@ -142,7 +147,7 @@ class ProcessGroup(Sequence):
                     "The process you are attempting to remove from this group is running "
                     "and cannot be removed safely. Please stop the process before removing."
                 )
-            self._procs.remove(proc)
+            self._procs.remove(t.cast(Process, proc))
 
     def to_dicts(self) -> t.List[Process.SavedProcessDict]:
         """Get a snapshot of all Processes in this group as SavedProcessDicts."""
