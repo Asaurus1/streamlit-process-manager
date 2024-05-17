@@ -205,7 +205,7 @@ def run(
     output_file: "StrPath | None" = _unspecified,  # type: ignore
     encoding: str = "utf-8",
     env: "t.Mapping[str, str] | None" = None,
-    cwd: "StrPath | None",
+    cwd: "StrPath | None" = None,
     capture_output: "bool | t.Literal['none', 'stderr', 'stdout', 'all']" = True,
     cache_output_capture: bool = True,
     group: "str | None" = None,
