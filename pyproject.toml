@@ -1,6 +1,6 @@
 [project]
 name = "streamlit-process-manager"
-version = "0.0.1a"
+version = "0.0.1b"
 description = "Manage the heck out of long-running processes in streamlit"
 authors = [
     {name = "Alexander Martin", email = "fauxjunk-1@yahoo.com"},
