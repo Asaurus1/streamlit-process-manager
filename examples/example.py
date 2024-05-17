@@ -26,8 +26,8 @@ counter_prog = """
 import time
 
 try:
-    for x in range(100):
-        print(f"Running... {x}%", flush=True)
+    for x in range(20):
+        print(f"Running... {x}%")
         time.sleep(0.1)
 finally:
     print("I'm done!")
@@ -55,50 +55,60 @@ while True:
 
 
 # --------------------------------------
-st.header("Single Process", divider=True)
-
-st.write("If your page only needs one process at a time, use the 'single process' pattern.")
+st.header("Getting a Running Start", divider=True)
+st.write("If your page only needs one process at a time, use the `run` function, which is very similar to `subprocess.run`.")
 
 with st.echo(code_location="below"):
     import streamlit_process_manager as spm
-    import streamlit_process_manager.api
+
+    # Create a single re-runnable process and loop here until it finishes.
+    spm.run(
+        [sys.executable, "-u", "-c", counter_prog],
+        output_file=Path(".temp/test.output"),
+        label=f"A Simple Counter",
+        loop=True,
+        expanded=True,
+        group="use_run",
+        rerunable=True,
+    )
+
+with st.expander("`counter_prog` used in this example"):
+    st.code(counter_prog)
+
+st.header("Staying Single", divider=True)
+st.write("If you need a litle more fine-grained control, use the 'ProcessManger.single()' pattern.")
+
+with st.echo(code_location="below"):
+    import streamlit_process_manager as spm
 
     # Get the global ProcessManager
     pm = spm.get_manager()
 
     # Add a single rerunnable process to the ProcessGroup named "single".
-    # If this process already exists, # from a previous run of your app,
+    # If this process already exists, from a previous run of your app,
     # a new process won't be created.
-    # command = [sys.executable, "-c", counter_prog]
-    # output_file = Path(".temp/test.output")
-    # proc = pm.single(spm.RerunableProcess(command, output_file), group="single")
+    command = [sys.executable, "-c", "-u", counter_prog]
+    output_file = Path(".temp/test.output")
+    proc = pm.single(spm.RerunableProcess(command, output_file), group="single")
 
-    # # Create a ProcessMonitor to view the output and status of your process.
-    # # This will display a ProcessMonitor widget in your app, but won't
-    # # actually start following the running process just yet.
-    # process_label = f"A Simple Counter [pid: {proc.pid}]"
-    # pmon = spm.st_process_monitor(proc, label=process_label, showcontrols=True)
-    spm.run(
-        [sys.executable, "-c", counter_prog],
-        output_file=Path(".temp/test.output"),
-        label=f"A Simple Counter",
-        loop=True,
-        group="single",
-        rerunable=True,
-    )
+    # Create a ProcessMonitor to view the output and status of your process.
+    # This will display a ProcessMonitor widget in your app, but won't
+    # actually start following the running process just yet.
+    process_label = f"A Simple Counter [pid: {proc.pid}]"
+    pmon = spm.st_process_monitor(proc, label=process_label, showcontrols=True)
 
 st.write(
-    "Now that you've created a `ProcessMonitor`, you can call `.loop_until_finished` "
+    "Now that you've created a `ProcessMonitor`, you can call `.loop_until_finished()` "
     "to tail the process output while blocking your app. "
 )
-# with st.echo():
-#     # Continually refresh the process ouptut until it terminates.
-#     pmon.loop_until_finished()
+with st.echo():
+    # Continually refresh the process ouptut until it terminates.
+    pmon.loop_until_finished()
 
-#     # After the process finishes, we check the return code; if it's 0, then we show
-#     # a happy message in the "contents" section of the process monitor
-#     if proc.returncode == 0:
-#         pmon.contents.success("Hooray! The counter finished successfully.")
+    # After the process finishes, we check the return code; if it's 0, then we show
+    # a happy message in the "contents" section of the process monitor
+    if proc.returncode == 0:
+        pmon.contents.success("Hooray! The counter finished successfully.")
 
 st.write(
     "\n> Note: If you've just loaded this page, the process probably isn't running yet, "

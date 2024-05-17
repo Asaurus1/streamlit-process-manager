@@ -16,20 +16,24 @@ Streamlit Process Manager attempts to make a that a bit easier. It looks somethi
 
 ![Streamlit Process Monitor Animation](https://raw.githubusercontent.com/asaurus1/streamlit-process-manager/main/.github/images/ProcessMonitor.gif)
 
+And here's the simplest program (you have to write `my_program.py` yourself):
 ```python
 import streamlit_process_manager as spm
 
-# Get the global ProcessManager
-pm = spm.get_manager()
-
-# Configure the Process and start it
-my_program = ["python", "my_program.py"]
+my_program = ["python", "-u", "my_program.py"]
 output_file = "program_output.txt"
-process = pm.single(spm.Process(my_program, output_file))
-process.start_safe()
+process = spm.run(my_program, output_file=output_file)
 
-# Run the process and monitor it in streamlit!
-spm.st_process_monitor(process).loop_until_finished()
+# in my_program.py
+# -------------------------------------------
+import time
+
+try:
+    for x in range(100):
+        print(f"Running... {x}%")
+        time.sleep(0.1)
+finally:
+    print("I'm done!")
 ```
 
 > ⚠️ **DISCLAIMER** ⚠️
