@@ -43,7 +43,9 @@ spm.st_process_monitor(process).loop_until_finished()
 
 ## Installation
 
-`pip install streamlit-process-monitor`
+Alpha: `pip install streamlit-process-manager==0.0.1a`
+
+Latest: `pip install git+https://github.com/Asaurus1/streamlit-process-manager`
 
 Requires
 * `Python 3.8.*` or above
@@ -53,24 +55,21 @@ Requires
 
 ## Development
 
-This project uses [`pdm`](https://pdm-project.org/) for most of its development tooling. Ensure you have `python3.8` installed, then run
+This project uses [`pdm`](https://pdm-project.org/) for most of its development tooling. Recommended environment for development is kept in the `pdm.lock` file.
 
+Ensure you have `python3.12` installed, then run
 ```
 pip install pdm
-pdm venv create 3.8
+pdm venv create 3.12
 pdm install --dev --group test --group lint
 ```
 
 to get started, then run
-
 ```
 pdm check
 ```
 
 to verify that everything is set up and ready to go.
-
-> If you must use Python 3.12 or greater, you may have issues with numpy 1.24 needing to be
-  built from source since it only supports python versions up to 3.11.
 
 ### Testing with tox
 
