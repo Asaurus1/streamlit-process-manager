@@ -25,7 +25,6 @@ import typing as t
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 
-import cachetools.func
 import psutil
 
 from streamlit_process_manager import _core
@@ -99,6 +98,7 @@ class Process:
         On Windows, this is only true for processes created by .start() since we cannot guarantee that external
         processes were created with a separate ProcessGroup and won't kill the current process when issuing a
         BREAK signal."""
+        self._last_poll_cache = SimpleTTLCache(None, ttl=Process.POLL_CACHE_TTL)
 
         # Public properties
         self.cmd = cmd  # type: ignore[assignment]  # https://github.com/python/mypy/issues/3004
@@ -157,7 +157,7 @@ class Process:
         )
         self._can_be_interrupted = not psutil.WINDOWS  # True can't be used here; see .interrupt()
         self._start_time = self._proc.create_time()
-        self._poll.cache_clear()
+        self._last_poll_cache.clear()
 
     def terminate(self, wait_for_death=False):
         """Call to force-kill the process.
@@ -170,7 +170,7 @@ class Process:
         self._raise_if_proc_not_child(action="terminate")
         try:
             self._proc.terminate()
-            self._poll.cache_clear()
+            self._last_poll_cache.clear()
             if wait_for_death:
                 self._proc.wait()
         except psutil.NoSuchProcess:
@@ -208,7 +208,7 @@ class Process:
             # In order to make this work on windows, we have to have the process be in a separate group and then it
             # doesn't get closed by streamlit normally terminating. So we don't do it.
             self._proc.send_signal(signal.SIGINT)
-            self._poll.cache_clear()
+            self._last_poll_cache.clear()
             if wait_for_death:
                 self._proc.wait()
         except psutil.NoSuchProcess:
@@ -217,6 +217,7 @@ class Process:
 
     def _raise_if_proc_not_child(self, action: str):
         """Raise an UnsafeOperationError if this Process is not a child of the current process."""
+        self._last_poll_cache.clear()  # clear the returncode cache so we get up-to-date info
         if (
             not _core.UNSAFE_ALLOW_NONCHILDREN_TERMINATION
             and (pid := self.pid) is not None
@@ -444,16 +445,20 @@ class Process:
             return None
         return self._poll()
 
-    @cachetools.func.ttl_cache(ttl=POLL_CACHE_TTL)
     def _poll(self):
         # required because psutil.Process doesn't implement ".poll()""
-        try:
-            return self._proc.poll()
-        except AttributeError:
+        cache_result = self._last_poll_cache.get()
+        if cache_result is SimpleTTLCache.OUTOFDATE:
             try:
-                return self._proc.wait(timeout=0.01)
-            except psutil.TimeoutExpired:
-                return None
+                cache_result = self._proc.poll()
+            except AttributeError:
+                try:
+                    cache_result = self._proc.wait(timeout=0.01)
+                except psutil.TimeoutExpired:
+                    return None
+            self._last_poll_cache.set(cache_result)
+
+        return cache_result
 
     @property
     def started(self) -> bool:
@@ -691,6 +696,40 @@ class FinalizedProcess(Process):
     def can_be_started(self) -> t.Literal[False]:
         """Return always False."""
         return False
+
+
+class SimpleTTLCache(t.Generic[T]):
+    """A simple ttl-style cache for a single value that doesn't rely on a global lookup or objects-as-keys."""
+    # pylint: disable=too-few-public-methods
+
+    class _OutOfDateValue:
+        """Sentinel object class."""
+
+    OUTOFDATE = _OutOfDateValue()
+    """Sentinel value indicating the cache is out of date."""
+
+    __slots__ = ["ttl", "_value", "_last_store_time"]
+
+    def __init__(self, initial_value: T, ttl: float = 1.0):
+        """Create a new cache of type T."""
+        self.ttl = ttl
+        self._value = initial_value
+        self._last_store_time = time.monotonic()
+
+    def set(self, value):
+        """Update the value in the cache."""
+        self._value = value
+        self._last_store_time = time.monotonic()
+
+    def get(self) -> T | _OutOfDateValue:
+        """Get the current value in the cache. OUTOFDATE is returned if the ttl time has elapsed."""
+        if time.monotonic() - self._last_store_time > self.ttl:
+            return self.OUTOFDATE
+        return self._value
+
+    def clear(self):
+        """Clear the cache by setting the last_stored_time to -inf."""
+        self._last_store_time = -float("inf")
 
 
 def _default_label_if_unset(label: "str | None", args: "t.Sequence[str]") -> str:

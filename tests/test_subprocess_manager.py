@@ -170,7 +170,7 @@ def start_with_mock_sp(proc: process.Process, *args, **kwargs):
 def mark_as_finished(proc, rc=0):
     if isinstance(proc, process.Process):
         mark_as_finished(proc._proc, rc=rc)
-        proc._poll.cache_clear()
+        proc._last_poll_cache.clear()
     else:
         proc.returncode = rc
 
@@ -832,6 +832,33 @@ def test_process_group_cannot_add_same_process_twice(fake_process: process.Proce
     pg.add(fake_process)
     with pytest.raises(ValueError, match="Process already exists in ProcessGroup"):
         pg.add(fake_process)
+
+
+def test_process_group_add_remove_process_proxy(fake_process: process.Process):
+    initial_proxy = proxy.ProcessProxy(fake_process)
+    pg1 = group.ProcessGroup()
+    proxy1 = pg1.add(initial_proxy)
+    pg2 = group.ProcessGroup()
+    proxy2 = pg2.add(proxy1)
+    assert proxy1 == proxy2 == initial_proxy == fake_process
+    assert proxy1._deref_pgroup() is pg1
+    assert proxy2._deref_pgroup() is pg2
+    assert initial_proxy._deref_pgroup() is None
+
+    # also test removal here because it's convenient
+    proxy1.remove_from_pgroup()
+    assert proxy2 not in pg1
+    assert proxy2 in pg2
+
+
+def test_process_group_add_fails_on_dead_proxy():
+    fake_process = mock.Mock()  # can't use the global object because we need to destroy it
+    initial_proxy = proxy.ProcessProxy(fake_process)
+    del fake_process  # destroy the proxied "process"
+    assert initial_proxy._proc_weak() is None
+    pg = group.ProcessGroup()
+    with pytest.raises(ValueError, match="you are trying to add to a ProcessGroup"):
+        pg.add(initial_proxy)
 
 
 def test_process_group_empty():
