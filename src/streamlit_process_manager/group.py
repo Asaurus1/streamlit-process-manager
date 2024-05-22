@@ -46,21 +46,25 @@ class ProcessGroup(Sequence):
 
         self._lock = threading.Lock()
 
-    def add(self, process: Process):
+    def add(self, process: "ProcessOrProxy"):
         """Add the provided Process to this group.
 
         Parameters:
-            process (Process): the Process to add. If it already exists in this group, a ValueError is raised.
+            process (Process or ProcessProxy): the Process to add. If it already exists in this group,
+            a ValueError is raised.
 
         Returns:
-            ProcessProxy: a proxy for the Process just added.
+            ProcessProxy: a new proxy for the Process just added.
         """
         if process in self._procs:
             raise ValueError("Process already exists in ProcessGroup, cannot add twice.")
         if isinstance(process, proxy.ProcessProxy):
-            raise ValueError("Cannot add a ProcessProxy to a group.")
-        self._procs.append(process)
-        return proxy.ProcessProxy(process, pgroup=self)
+            # pylint: disable=protected-access
+            _process: Process = process._deref_proc(when="you are trying to add to a ProcessGroup")
+        else:
+            _process = process
+        self._procs.append(_process)
+        return proxy.ProcessProxy(_process, pgroup=self)
 
     def start_all(self):
         """Start all processes in this group that can be started."""
