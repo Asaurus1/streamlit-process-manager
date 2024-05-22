@@ -255,7 +255,7 @@ class ProcessMonitorGroup(Sequence):
                 monitor.config.show_controls and was_running is True and is_running is False
                 for monitor, is_running, was_running in zip(self._monitors, running_states, last_running_states)
             ):
-                # If t.Any process has stopped during the sleep, the control buttons will now be in an unexpected state.
+                # If any process has stopped during the sleep, the control buttons will now be in an unexpected state.
                 # We can't run _draw_controls() again because streamlit will throw a DuplicateWidgetID exception.
                 # Instead, we request a rerun and hope that the user has cached things appropriately.
                 # If ALL processes have stopped, then the next rerun should skip this step so we don't get into
@@ -312,7 +312,7 @@ def _render_process_control_buttons(process: "ProcessOrProxy"):
     # _wrap_exception is actually callable pylint: disable=not-callable
     cols = st.columns((25, 25, 40, 20))
 
-    # All callbacks are wrapped in "_wrap_exception" so that they kindly display t.Any exception messages encountered
+    # All callbacks are wrapped in "_wrap_exception" so that they kindly display any exception messages encountered
     # when called (such as UnsafeOperationErrors)
 
     # Start/restart button

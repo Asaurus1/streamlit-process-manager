@@ -73,7 +73,13 @@ to get started, then run
 pdm check
 ```
 
-to verify that everything is set up and ready to go.
+This will run the linter, type checker, and tester. If everything passes then you are set up and ready to go.
+
+### Running the example
+Once you have your environment installed, you can run `pdm example` to start streamlit and open the example page.
+This is a good introduction to how `streamlit-process-manager` works, and has several code examples you can read
+through to understand the recommnded practices for using the library.
+
 
 ### Testing with tox
 

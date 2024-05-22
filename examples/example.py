@@ -56,7 +56,7 @@ while True:
 
 # --------------------------------------
 st.header("Getting a Running Start", divider=True)
-st.write("If your page only needs one process at a time, use the `run` function, which is very similar to `subprocess.run`.")
+st.write("If your page only needs one process at a time, use the `spm.run` function, which is very similar to `subprocess.run`.")
 
 with st.echo(code_location="below"):
     import streamlit_process_manager as spm
@@ -76,7 +76,7 @@ with st.expander("`counter_prog` used in this example"):
     st.code(counter_prog)
 
 st.header("Staying Single", divider=True)
-st.write("If you need a litle more fine-grained control, use the 'ProcessManger.single()' pattern.")
+st.write("If you need a litle more fine-grained control, use the `ProcessManger.single()` pattern.")
 
 with st.echo(code_location="below"):
     import streamlit_process_manager as spm
@@ -183,8 +183,10 @@ def _clear_caches():
     pm = spm.get_manager()
     pm.group("single").terminate_all()
     pm.group("multi").terminate_all()
+    pm.group("use_run").terminate_all()
     pm.group("single").unsafe_clear()
     pm.group("multi").unsafe_clear()
+    pm.group("use_run").unsafe_clear()
 
 
 st.divider()

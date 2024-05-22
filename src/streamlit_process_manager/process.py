@@ -65,9 +65,9 @@ class Process:
                 are NOT supported due to the complexities of terminating shell processes.
             output_file (StrPath): A filepath representing an output file to monitor. The Popen process must already
                 be configured to output to this file.
-            output_encoding (optional, t.Any valid string encoding): Which encoding to use when reading the output file,
+            output_encoding (optional, any valid string encoding): Which encoding to use when reading the output file,
                 defaults to UTF-8.
-            capture (one of "none", "stderr", "stdout", "all"): Which output streams, if t.Any, to redirect to
+            capture (one of "none", "stderr", "stdout", "all"): Which output streams, if any, to redirect to
                 output_file in the created process. Defaults to "all".
             env (optional, Mapping[str, str]): A mapping/dict representing the environment to send to the current
                 process. Defaults to the current process's environment if not specified.
@@ -339,7 +339,7 @@ class Process:
             proc (Popen object): An existing Popen process.
             output_file (PathLike): A filepath representing an output file to monitor. The Popen process must already
                 be configured to output to this file.
-            output_encoding (optional, t.Any valid string encoding): Which encoding to use when reading the output file,
+            output_encoding (optional, any valid string encoding): Which encoding to use when reading the output file,
                 defaults to UTF-8.
             label (optional, str): A label to assign to this process. Defaults to the command line arguments.
             cache_output_capture (optional, bool): Whether to cache lines read from the output file.
@@ -394,7 +394,7 @@ class Process:
                 process unless UNSAFE_ALLOW_NONCHILDREN_CREATION is set.
             output_file (PathLike): A filepath representing an output file to monitor. The Popen process must already
                 be configured to output to this file.
-            output_encoding (optional, t.Any valid string encoding): Which encoding to use when reading the output file,
+            output_encoding (optional, any valid string encoding): Which encoding to use when reading the output file,
                 defaults to UTF-8.
             label (optional, str): A label to assign to this process. Defaults to the command line arguments.
             cache_output_capture (optional, bool): Whether to cache lines read from the output file.

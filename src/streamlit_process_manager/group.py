@@ -99,7 +99,7 @@ class ProcessGroup(Sequence):
                 try:
                     process.terminate(wait_for_death=wait_for_death)
                 except Exception as exc:  # pylint: disable=broad-exception-caught
-                    # If there's t.Any issues during termination, keep going because we want to make sure all the
+                    # If there's any issues during termination, keep going because we want to make sure all the
                     # processes at least try.
                     last_err = exc
         if last_err:
@@ -121,7 +121,7 @@ class ProcessGroup(Sequence):
                 try:
                     process.interrupt(wait_for_death=wait_for_death, force=force)
                 except Exception as exc:  # pylint: disable=broad-exception-caught
-                    # If there's t.Any issues during interruption, keep going because we want to make sure all the
+                    # If there's any issues during interruption, keep going because we want to make sure all the
                     # processes at least try.
                     last_err = exc
         if last_err:
@@ -131,7 +131,7 @@ class ProcessGroup(Sequence):
     def unsafe_clear(self):
         """Clear all Processes from this group.
 
-        This does not return t.Any of the Processes so if you want to retain references to them, use
+        This does not return any of the Processes so if you want to retain references to them, use
         `saved_procs = group.procs` first. This is also not safe to call in general, as it does not check
         whether any of the processes in the group are running before clearing them. To remove all processes safely,
         iterate over the processes in the group and call `.remove()` on them after determining whether you want to

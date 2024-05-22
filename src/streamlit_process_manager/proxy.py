@@ -71,20 +71,6 @@ class ProcessProxy:
             )
         return deref
 
-    # @staticmethod
-    # def _proxied_property(prop_name: str) -> t.Callable[[t.Callable[[t.Any, Process], T]], T]:
-    #     """Do Voodo property magic so that we deref he process before we access a property on it."""
-
-    #     def _decorator(func: t.Callable[[t.Any, Process], T]) -> T:
-
-    #         @stu.functools.wraps(func)
-    #         def _proxprop(self: ProcessProxy) -> T:
-    #             return func(self, self._deref_proc(when=f"you tried to get the {prop_name} of"))
-
-    #         return t.cast("T", property(_proxprop))
-
-    #     return _decorator
-
     def start(self) -> "Self":
         """Start this process.
 
@@ -167,7 +153,7 @@ class ProcessProxy:
             nlines (optional, int): The maximum number of lines to return. If None, all lines are returned.
 
         Returns:
-            t.List[str]: The last nlines of output (or fewer) from the monitored output_file.
+            list[str]: The last nlines of output (or fewer) from the monitored output_file.
                 Strings are newline-terminated, and so may be joined with `"".join(proc.peek_output())` to recreate
                 the file contents. If the process is not running or the output file does not exist, an empty list is
                 returned.
@@ -181,7 +167,7 @@ class ProcessProxy:
             nlines (int): number of lines of output to show.
 
         Returns:
-            t.List[str]: A list of strings representing the last nlines of output from this Process.
+            list[str]: A list of strings representing the last nlines of output from this Process.
         """
         while self.started:
             output = self.peek_output(nlines=nlines)

@@ -261,9 +261,9 @@ def run(
             are NOT supported due to the complexities of terminating shell processes.
         output_file (StrPath): A filepath representing an output file to monitor. The Popen process must already
             be configured to output to this file.
-        output_encoding (optional, t.Any valid string encoding): Which encoding to use when reading the output file,
+        output_encoding (optional, any valid string encoding): Which encoding to use when reading the output file,
             defaults to UTF-8.
-        capture_output (bool, or one of "none", "stderr", "stdout", "all"): Which output streams, if t.Any,
+        capture_output (bool, or one of "none", "stderr", "stdout", "all"): Which output streams, if any,
             to redirect to output_file in the created process. True=="all", False=="none". Defaults to "all".
         env (optional, Mapping[str, str]): A mapping/dict representing the environment to send to the current process.
             Defaults to the current process's environment if not specified.
