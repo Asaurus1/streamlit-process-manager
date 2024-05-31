@@ -302,6 +302,11 @@ class ProcessMonitorGroup(Sequence):
         """Get ProcessMonitor(s) from the specified index or slice."""
         return self._monitors[index]
 
+    @property
+    def processes(self) -> "Iterator[ProcessOrProxy]":
+        """Iterate over the Process for each monitor in this group."""
+        return (monitor.process for monitor in self._monitors)
+
 
 def _render_process_control_buttons(process: "ProcessOrProxy"):
     """Draws a set of control streamlit buttons for the specified Process side-by-side.

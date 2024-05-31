@@ -1246,8 +1246,12 @@ def test_process_monitor_group_loop(mock_streamlit, fake_process_seq: t.List[pro
     )
 
 
-def test_process_monitor_app(real_process_infinite: process.Process):
+def test_process_monitor_group_processes(fake_process_seq: t.List[process.Process]):
+    pmg = monitor.ProcessMonitorGroup(monitor.ProcessMonitor(proc) for proc in fake_process_seq)
+    assert list(pmg.processes) == [mon.process for mon in pmg]
 
+
+def test_process_monitor_app(real_process_infinite: process.Process):
     at = streamlit.testing.v1.AppTest.from_function(app_monitor_update_once)
     at.session_state["proc"] = real_process_infinite
     at.session_state["procmonargs"] = dict(show_controls=True, label="foo bar")
