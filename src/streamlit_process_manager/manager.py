@@ -170,6 +170,18 @@ class ProcessManager:
 
         return _proc
 
+    def by_tags(self, tags: Iterable[str | re.Pattern]) -> t.List[ProcessProxy]:
+        """Return Processes from all managed groups that have tags matching all the specified tags.
+
+        Parameters:
+            tags (iterable of str | re.Pattern): the strings to match against.
+                Strings may match any part of the label. Patterns will be matched with re.match.
+
+        Returns:
+            t.List[Process]: a list of matching processes.
+        """
+        return list(itertools.chain(*(group.by_tags(tags) for group in self._groups.values())))
+
     def to_dict(self, groups: "Sequence[str] | None" = None) -> dict[str, t.List[Process.SavedProcessDict]]:
         """Convert the current state of this ProcessMonitor and all contained Processes to a dict.
 

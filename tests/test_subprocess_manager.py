@@ -974,10 +974,10 @@ def test_process_group_by_label(fake_process: process.Process, fake_rerunable_pr
     fake_rerunable_process.label = "Katara.bat"
     pg = group.ProcessGroup([fake_process, fake_rerunable_process])
     # Note: by_label actually returns ProcessProxies but their __eq__ allows comparing them to a Process.
-    assert pg.by_label("a", match_whole=False) == [fake_process, fake_rerunable_process]
+    assert pg.by_label(re.compile(".*a.*")) == [fake_process, fake_rerunable_process]
     assert pg.by_label("Aang.sh") == [fake_process]
     assert pg.by_label("foobar") == []
-    assert pg.by_label("Kat", match_whole=False) == [fake_rerunable_process]
+    assert pg.by_label(re.compile("Kat.*")) == [fake_rerunable_process]
 
 
 # ProcessManager Tests -----------------------------------------------------

@@ -56,6 +56,7 @@ class Process:
         env: "Mapping[str, str] | None" = None,
         cwd: "StrPath | None" = None,
         label: "str | None" = None,
+        tags: "Iterable[str] | None" = None,
         cache_output_capture: bool = True,
     ):
         """Create a Process object (does not start the process).
@@ -124,6 +125,9 @@ class Process:
         self.label: str = _default_label_if_unset(label, self.cmd)
         "A label for the process."
         self.cwd: "StrPath | None" = cwd
+        "The working directory for the process."
+        self.tags: "list[str]" = [] if tags is None else list(tags)
+        "A list of string tags for this process."
 
     def start(self) -> "Self":
         """Start the process.

@@ -17,6 +17,7 @@ limitations under the License.
 
 from __future__ import annotations
 
+import re
 import threading
 import typing as t
 from collections.abc import Iterable, Iterator, Sequence  # pylint: disable=unused-import
@@ -176,16 +177,45 @@ class ProcessGroup(Sequence):
         with self._lock:
             return [proc.returncode for proc in self._procs]
 
-    def by_label(self, label: str, match_whole: bool = True) -> t.List["proxy.ProcessProxy"]:
+    def by_label(self, label: "str | re.Pattern") -> t.List["proxy.ProcessProxy"]:
         """Return a list of proxies for the Processes from this group with a label that matches the specified string.
 
         Parameters:
-            label (str): the string to match against.
-            match_whole (bool): whether the Process label must exactly match the provided string, or only a part.
+            label (str | re.Pattern): the string or pattern to match against.
+                Strings may match any part of the label. Patterns will be matched with re.match.
 
         Returns:
             t.List[Process]: a list of matching processes.
         """
+
+        def _match_condition(proc_label):
+            if isinstance(label, re.Pattern):
+                return re.match(label, proc_label)
+            return label in proc_label
+
+        with self._lock:
+            return [proxy.ProcessProxy(proc, pgroup=self) for proc in self._procs if _match_condition(proc.label)]
+
+    def by_tags(self, tags: Iterable[str | re.Pattern]) -> t.List["proxy.ProcessProxy"]:
+        """Return a list of proxies for the Processes from this group that have tags matching all the specified tags.
+
+        Parameters:
+            tags (iterable of str | re.Pattern): the strings to match against.
+                Strings may match any part of the label. Patterns will be matched with re.match.
+
+        Returns:
+            t.List[Process]: a list of matching processes.
+        """
+
+        # TODO should this be a "AND" condition or an "OR" condition?
+        def _match_condition(proc_tags):
+            for tag in tags:
+                if isinstance(tag, re.Pattern) and not any(re.match(tag, proc_tag) for proc_tag in proc_tags):
+                    return False
+                if not any(tag in proc_tag for proc_tag in proc_tags):
+                    return False
+            return False
+
         with self._lock:
             return [proxy.ProcessProxy(proc, pgroup=self) for proc in self._procs if _match_condition(proc.tags)]
 
