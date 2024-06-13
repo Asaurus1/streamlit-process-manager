@@ -700,6 +700,7 @@ class FinalizedProcess(Process):
 
 class SimpleTTLCache(t.Generic[T]):
     """A simple ttl-style cache for a single value that doesn't rely on a global lookup or objects-as-keys."""
+
     # pylint: disable=too-few-public-methods
 
     class _OutOfDateValue:

@@ -48,6 +48,7 @@ test = [
 lint = [
     "mypy>=1.9.0",
     "pylint>=3.1.0",
+    "black==24.*",
     "pandas-stubs>=2.0.2.230605",
     "types-Pillow>=10.2.0.20240324",
     "types-cachetools>=5.3.0.7",
@@ -75,10 +76,13 @@ excludes = ["numpy", "pandas"]
 mypy = "mypy --install-types --non-interactive src/streamlit_process_manager"
 test = "pytest"
 pylint = "pylint src/streamlit_process_manager"
-lint = {composite = ["pylint", "mypy"]}
+lint = {composite = ["format-check", "pylint", "mypy"]}
 check = {composite = ["test", "lint"]}
+format = "black src"
+format-check = "black --check --diff src"
 example = "streamlit run examples/example.py"
 freeze = "pdm export --editable-self --no-hashes -o requirements.txt"
+init-dev = "pdm install -G test -G lint"
 
 
 [tool.pylint]

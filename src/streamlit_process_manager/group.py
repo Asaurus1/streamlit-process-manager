@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 from __future__ import annotations
 
 import threading
@@ -186,11 +187,7 @@ class ProcessGroup(Sequence):
             t.List[Process]: a list of matching processes.
         """
         with self._lock:
-            return [
-                proxy.ProcessProxy(proc, pgroup=self)
-                for proc in self._procs
-                if (label in proc.label and not match_whole) or proc.label == label
-            ]
+            return [proxy.ProcessProxy(proc, pgroup=self) for proc in self._procs if _match_condition(proc.tags)]
 
     @property
     def procs(self) -> t.List[proxy.ProcessProxy]:

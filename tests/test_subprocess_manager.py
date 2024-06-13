@@ -18,6 +18,7 @@ limitations under the License.
 import copy
 import io
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -142,6 +143,7 @@ def p_manager(get_manager):
     return get_manager()
 
 
+# fmt: off
 @pytest.fixture
 def pretend_windows():
     with mock.patch("psutil.WINDOWS", new=True),\
@@ -158,6 +160,7 @@ def pretend_linux():
         mock.patch("psutil.LINUX", new=True)\
     :
         yield
+# fmt: on
 
 
 # Test Helpers -----------------------------------------------------
@@ -1169,7 +1172,7 @@ def test_process_monitor_core(mock_output, fake_process: process.Process):
 def test_process_monitor_long_label(fake_process: process.Process):
     fake_process.label = "a" * 50
     pm = monitor.ProcessMonitor(fake_process)
-    assert pm.config.label == "a"*30 + "..."
+    assert pm.config.label == "a" * 30 + "..."
 
 
 @mock.patch.object(process.Process, "peek_output")
